@@ -2,7 +2,11 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2c4540">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Museo Enigmi">
 <title>Il Museo degli Enigmi Pop</title>
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Crimson+Pro:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -165,7 +169,10 @@
   @keyframes glint{0%,68%,100%{opacity:0;transform:scale(.3)}80%{opacity:1;transform:scale(1.25)}}
   .seal.reveal .seal-art{animation:pulseS .9s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
   @keyframes pulseS{50%{transform:scale(1.6)}}
-  .scene .movable,.scene .toggle{filter:url(#sh)}
+  .scene .movable,.scene .toggle,.scene .egg-obj{filter:url(#sh)}
+  .egg-obj{cursor:pointer}
+  .egg-obj.found{opacity:.4}
+  .egg-obj.reveal .egg-art{animation:pulseS .9s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
   .nudge{animation:nudge .45s;transform-box:fill-box}
   @keyframes nudge{20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
   .frame.enter{animation:enter .55s ease-out}
@@ -185,6 +192,8 @@
   .stamp{font-family:"IM Fell English SC",serif;border:2px solid var(--gold);color:var(--gold);padding:3px 14px;border-radius:4px;transform:rotate(-3deg);font-size:19px}
   .overlay{position:fixed;inset:0;z-index:20;background:radial-gradient(circle at 50% 40%,#3a2a18,#140c05 75%);justify-content:center}
   .overlay .row{justify-content:center}
+  .save-state{text-align:center;font-size:14px;margin:0 auto 12px;max-width:44ch;color:var(--paper);opacity:.9}
+  .save-state.none{background:rgba(155,45,32,.85);border-radius:6px;padding:6px 10px;opacity:1}
   .relic-art{flex-shrink:0}
   @media (prefers-reduced-motion:reduce){.seal .glint,.seal.reveal .seal-art,.nudge,.frame.enter,.card.open,.note.show{animation:none}.seal .glint{opacity:1}}
 </style>
@@ -202,9 +211,10 @@
         <rect x="14" y="150" width="312" height="10" fill="#e4d2a9" stroke="#3b2616" stroke-width="3"/><rect x="4" y="158" width="332" height="11" fill="#d6c7a1" stroke="#3b2616" stroke-width="3"/>
       </svg>
       <h1>Il Museo degli Enigmi Pop</h1>
-      <p class="sub">Venti sale, venti cimeli della cultura popolare e quaranta easter egg nascosti negli angoli. Esplora ogni sala, raccogli gli indizi nel taccuino, trova il sigillo del curatore e risolvi il suo enigma: solo allora potrai frugare tra gli oggetti e scovare il cimelio.</p>
+      <p class="sub">Venti sale, venti cimeli della cultura popolare e quaranta easter egg: piccoli oggetti nascosti nelle scene, ognuno legato a un riferimento pop. Esplora ogni sala, raccogli gli indizi nel taccuino, trova il sigillo del curatore e risolvi il suo enigma: solo allora potrai frugare tra gli oggetti e scovare il cimelio.</p>
     </header>
     <div class="stats" id="stats"></div>
+    <p class="save-state" id="saveState"></p>
     <div class="row center"><button id="continueBtn">Continua la visita</button><button class="alt" id="resetBtn">Ricomincia da zero</button></div>
     <div id="wings"></div>
   </section>
@@ -659,7 +669,8 @@ const $=id=>document.getElementById(id);
 const scene=$("scene"),overlay=$("overlay"),note=$("note");
 const TIERS=[["Ala Est","primi passi","#2f6f6a"],["Ala Ovest","apprendista","#8a6d1e"],["Ala Nord","investigatore","#9b2d20"],["Sotterranei","gran maestro","#4a2e5c"]];
 const SEALS=[[150,240],[290,205],[330,60],[130,120],[120,190],[205,60],[300,140],[40,250],[360,240],[300,270],[120,190],[120,262],[270,140],[360,100],[350,120],[110,250],[200,120],[30,110],[100,260],[100,200]];
-const BONUS=[[[200, 150, "Pac-Man (1980): secondo il suo creatore Toru Iwatani, la forma del protagonista nacque guardando una pizza a cui mancava una fetta."], [380, 280, "Nel primo Donkey Kong (1981) debuttò un carpentiere baffuto chiamato Jumpman: di lì a poco sarebbe diventato Mario."]], [[40, 60, "La guerra dei formati: negli anni '80 il VHS di JVC batté il Betamax di Sony, anche se molti consideravano il Betamax migliore."], [380, 290, "Di tutti i negozi Blockbuster del mondo ne è rimasto uno solo, a Bend, in Oregon."]], [[200, 66, "Lo Studio 54 di New York, aperto nel 1977, era la discoteca più esclusiva del mondo: all'ingresso decideva tutto il buttafuori."], [352, 110, "Gli ABBA vinsero l'Eurovision nel 1974 con Waterloo, e da lì conquistarono le piste di mezzo mondo."]], [[280, 60, "Nel 1996 in Giappone uscirono Pokémon Rosso e Verde per Game Boy: 151 creature da catturare."], [345, 120, "La lampada lava fu inventata nel 1963 dal britannico Edward Craven Walker."]], [[170, 95, "Il primo drive-in della storia aprì nel 1933 a Camden, nel New Jersey."], [70, 250, "La Cadillac rosa è legata a Elvis Presley, che nel 1955 ne regalò una a sua madre."]], [[118, 58, "Sgt. Pepper's dei Beatles (1967) fu tra i primi album rock con i testi delle canzoni stampati sulla copertina."], [380, 262, "Il juke-box deve il nome ai «juke joint», i locali da ballo del Sud degli Stati Uniti."]], [[110, 100, "HAL 9000, il computer di 2001: Odissea nello spazio (1968): spostando ogni lettera di una posizione si ottiene IBM. Kubrick e Clarke hanno sempre negato che fosse voluto."], [252, 120, "Il teletrasporto di Star Trek (1966) nacque anche per risparmiare sui costosi effetti degli atterraggi."]], [[330, 60, "Il Commodore 64, uscito nel 1982, è considerato il singolo modello di computer più venduto della storia."], [40, 282, "Ritorno al futuro II fece sognare le scarpe che si allacciano da sole: nel 2016 ne fu prodotto davvero un modello."]], [[310, 208, "In Happy Days, la serie ambientata negli anni '50, Fonzie accendeva il juke-box con un colpo di pugno."], [200, 40, "Chi ha inventato l'hamburger è ancora conteso tra più città americane: a New Haven Louis' Lunch sostiene di servirlo dal 1900."]], [[60, 60, "Frankenstein nacque nel 1816 da una sfida tra amici a Villa Diodati, sul lago di Ginevra: chi scrive la storia più spaventosa?"], [340, 232, "Nel Giro del mondo in 80 giorni (1872) di Verne, Phileas Fogg vince la scommessa grazie al fuso orario."]], [[60, 70, "In Ritorno al futuro (1985) la DeLorean viaggia nel tempo quando raggiunge le 88 miglia orarie."], [380, 262, "Il cubo di Rubik ha più di 43 miliardi di miliardi di combinazioni possibili."]], [[333, 44, "Dal 1963 il Dottore di Doctor Who viaggia nel tempo dentro una cabina della polizia blu, il TARDIS."], [380, 262, "In Italia i gettoni telefonici sono rimasti in uso fino al 2001, e per anni valevano anche come moneta."]], [[40, 62, "La torre di Hanoi fu inventata nel 1883 da Édouard Lucas, con una leggenda: quando i sacerdoti avranno spostato tutti i 64 dischi d'oro, il mondo finirà."], [330, 250, "Tomb Raider (1996) ha portato l'archeologia d'avventura nei videogiochi con Lara Croft."]], [[40, 40, "Viaggio nella Luna (1902) di Georges Méliès fu tra i film più copiati illegalmente della sua epoca."], [300, 250, "Il cantante di jazz (1927) fu il primo lungometraggio con dialoghi sincronizzati: l'inizio della fine del cinema muto."]], [[260, 60, "Nel 1922, a New York, la stazione WEAF trasmise quello che è considerato il primo spot pubblicitario radiofonico."], [60, 250, "Guglielmo Marconi vinse il premio Nobel per la fisica nel 1909."]], [[250, 60, "La macchina cifrante Enigma dei tedeschi fu violata anche grazie al lavoro di Alan Turing a Bletchley Park."], [380, 262, "Ian Fleming prese il nome James Bond da un ornitologo americano, autore di una guida sugli uccelli dei Caraibi."]], [[200, 40, "Nel 1976 Roger Sharpe fece tornare legale il flipper a New York: annunciò un colpo davanti al consiglio comunale e lo realizzò."], [320, 60, "Si racconta che Space Invaders (1978) fosse così popolare in Giappone da far mancare le monete da 100 yen."]], [[150, 90, "Topolino, il settimanale, esce in Italia nel formato libretto dal 1949."], [200, 38, "Diabolik, creato dalle sorelle Angela e Luciana Giussani nel 1962, diede il via al fumetto «nero» italiano."]], [[60, 60, "Il Nautilus di Verne prende il nome da un vero sottomarino progettato da Robert Fulton intorno al 1800."], [380, 40, "Nel 1954 fu varato il primo sottomarino a propulsione nucleare: si chiamava proprio Nautilus."]], [[370, 100, "Rischiatutto di Mike Bongiorno, dal 1970, portò in Italia il quiz con il tabellone e le domande divise per categorie."], [200, 282, "Il fotoromanzo nacque in Italia alla fine degli anni '40, con riviste come Bolero Film."]]];
+const EGG_ART={"pizza": "<path d=\"M0,0 L7.5,-4 A8.5,8.5 0 1,0 7.5,4 Z\" fill=\"#f4c56a\" stroke=\"#b5651d\" stroke-width=\"1.5\"/><circle cx=\"-3\" cy=\"-3\" r=\"1.4\" fill=\"#c1121f\"/><circle cx=\"-2\" cy=\"3.5\" r=\"1.4\" fill=\"#c1121f\"/><circle cx=\"1.5\" cy=\"-5.5\" r=\"1.2\" fill=\"#c1121f\"/>", "barrel": "<rect x=\"-6\" y=\"-8\" width=\"12\" height=\"16\" rx=\"4\" fill=\"#a0522d\" stroke=\"#5c2e0e\" stroke-width=\"1.2\"/><path d=\"M-6,-3 h12 M-6,3 h12\" stroke=\"#3a1d08\" stroke-width=\"1.5\"/>", "betamax": "<rect x=\"-8\" y=\"-5\" width=\"16\" height=\"10\" rx=\"1\" fill=\"#222\"/><circle cx=\"-3.5\" r=\"2\" fill=\"#ccc\"/><circle cx=\"3.5\" r=\"2\" fill=\"#ccc\"/><rect x=\"-6\" y=\"-4.5\" width=\"12\" height=\"2\" fill=\"#c1121f\"/>", "card": "<rect x=\"-9\" y=\"-6\" width=\"18\" height=\"12\" rx=\"2\" fill=\"#e9ecef\" stroke=\"#555\"/><rect x=\"-9\" y=\"-3\" width=\"18\" height=\"3\" fill=\"#333\"/><rect x=\"-6\" y=\"2\" width=\"8\" height=\"1.5\" fill=\"#888\"/>", "rope": "<rect x=\"-9\" y=\"-2\" width=\"2\" height=\"12\" fill=\"#c9a227\"/><rect x=\"7\" y=\"-2\" width=\"2\" height=\"12\" fill=\"#c9a227\"/><circle cx=\"-8\" cy=\"-3\" r=\"2\" fill=\"#c9a227\"/><circle cx=\"8\" cy=\"-3\" r=\"2\" fill=\"#c9a227\"/><path d=\"M-7,-2 q7,8 14,0\" stroke=\"#d00000\" stroke-width=\"2.5\" fill=\"none\"/>", "bicorne": "<path d=\"M-10,2 q10,-14 20,0 q-10,-4 -20,0z\" fill=\"#1b1b1b\" stroke=\"#777\"/><circle cy=\"-3\" r=\"1.8\" fill=\"#e63946\"/><circle cy=\"-3\" r=\"0.8\" fill=\"#fff\"/>", "pencil": "<rect x=\"-8\" y=\"-5\" width=\"14\" height=\"10\" rx=\"1\" fill=\"#e9c46a\" stroke=\"#333\"/><circle cx=\"-4\" r=\"2\" fill=\"#333\"/><circle cx=\"2\" r=\"2\" fill=\"#333\"/><path d=\"M-4,0 l14,-10\" stroke=\"#f4a261\" stroke-width=\"2.4\"/><path d=\"M9,-9.3 l2,-1.4\" stroke=\"#333\" stroke-width=\"2.4\"/>", "phones": "<path d=\"M-7,2 v-3 a7,7 0 0,1 14,0 v3\" stroke=\"#333\" stroke-width=\"1.8\" fill=\"none\"/><rect x=\"-9\" y=\"0\" width=\"4\" height=\"6\" rx=\"1.5\" fill=\"#e63946\"/><rect x=\"5\" y=\"0\" width=\"4\" height=\"6\" rx=\"1.5\" fill=\"#e63946\"/><rect x=\"-4\" y=\"4\" width=\"8\" height=\"9\" rx=\"1\" fill=\"#6c757d\" stroke=\"#333\" stroke-width=\".6\"/>", "speaker": "<rect x=\"-7\" y=\"-6\" width=\"14\" height=\"12\" rx=\"2\" fill=\"#adb5bd\" stroke=\"#333\"/><circle r=\"3.5\" fill=\"#333\"/><path d=\"M-7,-6 l-3,-3 h6\" stroke=\"#333\" fill=\"none\"/>", "pinkcar": "<path d=\"M-10,3 v-3 q2,-2 6,-2 l3,-4 h7 l3,4 q4,0 5,2 v3z\" fill=\"#ff8fab\" stroke=\"#6a1b3a\"/><circle cx=\"-5\" cy=\"4\" r=\"2.2\" fill=\"#222\"/><circle cx=\"6\" cy=\"4\" r=\"2.2\" fill=\"#222\"/>", "drum": "<ellipse cy=\"-5\" rx=\"8\" ry=\"3\" fill=\"#fff\" stroke=\"#333\"/><path d=\"M-8,-5 v9 a8,3 0 0,0 16,0 v-9\" fill=\"#c1121f\" stroke=\"#333\"/><path d=\"M-8,-2 l4,6 l4,-6 l4,6 l4,-6\" stroke=\"#ffd166\" fill=\"none\"/>", "coin5": "<circle r=\"7\" fill=\"#c0c0c0\" stroke=\"#666\" stroke-width=\"1.2\"/><text y=\"3\" text-anchor=\"middle\" font-family=\"Georgia\" font-weight=\"700\" font-size=\"8\" fill=\"#444\">5¢</text>", "monolith": "<rect x=\"-4\" y=\"-11\" width=\"8\" height=\"22\" fill=\"#050505\" stroke=\"#6a6a8a\" stroke-width=\".9\"/>", "teleport": "<path d=\"M-5,10 v-20 M0,10 v-20 M5,10 v-20\" stroke=\"#8ecae6\" stroke-width=\"1.3\" stroke-dasharray=\"2 2\"/><circle cy=\"-2\" r=\"2.2\" fill=\"#fff\"/><circle cx=\"-4\" cy=\"4\" r=\"1.2\" fill=\"#fff\"/><circle cx=\"4\" cy=\"-7\" r=\"1.2\" fill=\"#fff\"/>", "computer": "<path d=\"M-10,4 l3,-8 h14 l3,8z\" fill=\"#c9b99a\" stroke=\"#5c4a2e\"/><path d=\"M-6,-1 h12 M-7,2 h14\" stroke=\"#5c4a2e\" stroke-dasharray=\"1.5 1\"/>", "sneaker": "<path d=\"M-10,4 v-5 q4,0 6,-4 h4 q2,4 8,5 q2,1 2,4z\" fill=\"#f1f1f1\" stroke=\"#333\"/><path d=\"M-10,4 h20\" stroke=\"#e63946\" stroke-width=\"2\"/><path d=\"M-3,-3 l2,2 M0,-3 l2,2\" stroke=\"#333\"/>", "jacket": "<path d=\"M-9,-6 l6,-3 l3,4 l3,-4 l6,3 l1,15 h-20z\" fill=\"#1b1b1b\" stroke=\"#666\"/><path d=\"M0,-5 v15\" stroke=\"#999\"/>", "burger": "<path d=\"M-9,-1 q9,-11 18,0z\" fill=\"#e9a23b\"/><rect x=\"-9\" y=\"-1\" width=\"18\" height=\"3\" fill=\"#6a994e\"/><rect x=\"-9\" y=\"2\" width=\"18\" height=\"3\" rx=\"1\" fill=\"#6b3e1e\"/><path d=\"M-9,5 h18 q0,3 -3,3 h-12 q-3,0 -3,-3z\" fill=\"#e9a23b\"/>", "quill": "<path d=\"M-6,8 q2,-12 12,-18 q-2,10 -12,18z\" fill=\"#fff\" stroke=\"#999\"/><path d=\"M-7,9 l5,-6\" stroke=\"#333\"/><rect x=\"-10\" y=\"6\" width=\"7\" height=\"5\" rx=\"1\" fill=\"#1d3557\"/>", "balloon": "<circle cy=\"-4\" r=\"7\" fill=\"#e63946\" stroke=\"#7a1d25\"/><path d=\"M-7,-4 h14\" stroke=\"#ffd166\" stroke-width=\"2\"/><path d=\"M-4,2 l2,6 M4,2 l-2,6\" stroke=\"#c9a87a\"/><rect x=\"-3\" y=\"8\" width=\"6\" height=\"4\" fill=\"#8d6346\"/>", "speedo": "<path d=\"M-9,4 a9,9 0 0,1 18,0z\" fill=\"#111\" stroke=\"#aaa\" stroke-width=\"1.2\"/><path d=\"M0,4 l5,-6\" stroke=\"#e63946\" stroke-width=\"1.5\"/><text x=\"-3\" y=\"2\" text-anchor=\"middle\" font-size=\"5\" font-family=\"Georgia\" fill=\"#fff\">88</text>", "skate": "<path d=\"M-11,-1 h22 q2,0 2,2 h-26 q0,-2 2,-2z\" fill=\"#e76f51\" stroke=\"#5c2a1a\"/><circle cx=\"-6\" cy=\"4\" r=\"2\" fill=\"#333\"/><circle cx=\"6\" cy=\"4\" r=\"2\" fill=\"#333\"/>", "brick": "<rect x=\"-3.5\" y=\"-9\" width=\"7\" height=\"18\" rx=\"1.5\" fill=\"#3a3a3a\" stroke=\"#111\"/><rect x=\"-1\" y=\"-14\" width=\"2\" height=\"6\" fill=\"#111\"/><rect x=\"-2.5\" y=\"-6\" width=\"5\" height=\"3\" fill=\"#9ef01a\"/><path d=\"M-2,0 h4 M-2,2.5 h4 M-2,5 h4\" stroke=\"#bbb\"/>", "gettone": "<circle r=\"6.5\" fill=\"#b08d57\" stroke=\"#6b4f24\"/><path d=\"M-5,-1.5 h10 M-5,1.5 h10\" stroke=\"#6b4f24\" stroke-width=\"1.3\"/>", "discs": "<rect x=\"-1\" y=\"-10\" width=\"2\" height=\"18\" fill=\"#dff3ff\"/><ellipse cy=\"6\" rx=\"8\" ry=\"2.2\" fill=\"#e9c46a\" stroke=\"#8a6d1e\"/><ellipse cy=\"2\" rx=\"6\" ry=\"2\" fill=\"#e9c46a\" stroke=\"#8a6d1e\"/><ellipse cy=\"-2\" rx=\"4\" ry=\"1.8\" fill=\"#e9c46a\" stroke=\"#8a6d1e\"/>", "scarab": "<ellipse cy=\"2\" rx=\"5\" ry=\"6.5\" fill=\"#2a9d8f\" stroke=\"#0f3d38\"/><circle cy=\"-5.5\" r=\"3\" fill=\"#2a9d8f\" stroke=\"#0f3d38\"/><path d=\"M0,-3 v11 M-5,0 l-4,-2 M5,0 l4,-2 M-5,5 l-4,2 M5,5 l4,2\" stroke=\"#0f3d38\"/>", "moon": "<path d=\"M3,-9 a9,9 0 1,0 0,18 a7,7 0 1,1 0,-18z\" fill=\"#f4f1c9\" stroke=\"#999\"/><circle cx=\"-3\" cy=\"-2\" r=\"1\" fill=\"#555\"/>", "gramophone": "<rect x=\"-7\" y=\"3\" width=\"10\" height=\"6\" fill=\"#6b4226\"/><path d=\"M-2,3 l3,-6 l8,-6 l2,4z\" fill=\"#c9a227\" stroke=\"#6b4f24\"/>", "valve": "<path d=\"M-4,6 v-10 a4,5 0 0,1 8,0 v10z\" fill=\"#dff3ff\" fill-opacity=\".7\" stroke=\"#7a8aa0\"/><path d=\"M-2,4 v-7 M2,4 v-7\" stroke=\"#f4a261\"/><rect x=\"-5\" y=\"6\" width=\"10\" height=\"4\" fill=\"#333\"/>", "medal": "<path d=\"M-4,-10 l4,6 l4,-6\" stroke=\"#1d3557\" stroke-width=\"3\" fill=\"none\"/><circle cy=\"1\" r=\"6\" fill=\"#e9c46a\" stroke=\"#8a6d1e\"/><circle cy=\"1\" r=\"3.5\" fill=\"none\" stroke=\"#8a6d1e\"/>", "rotor": "<circle r=\"7.5\" fill=\"#6c757d\" stroke=\"#333\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(0)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(30)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(60)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(90)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(120)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(150)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(180)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(210)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(240)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(270)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(300)\"/><rect x=\"-1\" y=\"-9.5\" width=\"2\" height=\"3\" fill=\"#333\" transform=\"rotate(330)\"/><circle r=\"3\" fill=\"#333\"/><text y=\"1.8\" text-anchor=\"middle\" font-size=\"4\" font-family=\"Georgia\" fill=\"#fff\">A</text>", "bird": "<path d=\"M-8,2 q6,-9 14,-2 l4,-1 l-3,3 q-4,6 -15,0z\" fill=\"#6a994e\" stroke=\"#2d4a1e\"/><circle cx=\"4\" cy=\"-3\" r=\"1\" fill=\"#111\"/>", "flipper": "<path d=\"M-9,-2 q-2,4 2,4 l14,1 q2,-1 0,-3z\" fill=\"#f1f1f1\" stroke=\"#c1121f\" stroke-width=\"1.4\"/><circle cx=\"-7\" cy=\"0\" r=\"1.5\" fill=\"#c1121f\"/>", "yen": "<circle r=\"6.5\" fill=\"#d9d9d9\" stroke=\"#777\"/><text y=\"2.2\" text-anchor=\"middle\" font-size=\"5.5\" font-family=\"Georgia\" fill=\"#555\">100</text>", "digest": "<rect x=\"-6\" y=\"-8\" width=\"12\" height=\"16\" rx=\"1\" fill=\"#ffd166\" stroke=\"#333\"/><rect x=\"-4\" y=\"-6\" width=\"8\" height=\"5\" fill=\"#e63946\"/><path d=\"M-4,2 h8 M-4,4.5 h6\" stroke=\"#333\"/>", "mask": "<path d=\"M-10,-2 q5,-4 10,0 q5,-4 10,0 q0,6 -5,6 q-3,0 -5,-3 q-2,3 -5,3 q-5,0 -5,-6z\" fill=\"#111\" stroke=\"#555\"/><ellipse cx=\"-5\" cy=\"0\" rx=\"2\" ry=\"1.3\" fill=\"#fff\"/><ellipse cx=\"5\" cy=\"0\" rx=\"2\" ry=\"1.3\" fill=\"#fff\"/>", "sub": "<ellipse rx=\"10\" ry=\"4\" fill=\"#8a7a5a\" stroke=\"#4a3d2a\"/><rect x=\"-2\" y=\"-8\" width=\"5\" height=\"5\" fill=\"#8a7a5a\" stroke=\"#4a3d2a\"/><path d=\"M10,0 l3,-3 v6z\" fill=\"#4a3d2a\"/>", "atom": "<ellipse rx=\"9\" ry=\"3.5\" fill=\"none\" stroke=\"#8ecae6\" stroke-width=\"1.2\"/><ellipse rx=\"9\" ry=\"3.5\" fill=\"none\" stroke=\"#8ecae6\" stroke-width=\"1.2\" transform=\"rotate(60)\"/><ellipse rx=\"9\" ry=\"3.5\" fill=\"none\" stroke=\"#8ecae6\" stroke-width=\"1.2\" transform=\"rotate(-60)\"/><circle r=\"2\" fill=\"#e63946\"/>", "buzzer": "<rect x=\"-7\" y=\"1\" width=\"14\" height=\"6\" rx=\"1\" fill=\"#333\"/><ellipse cy=\"1\" rx=\"6\" ry=\"3\" fill=\"#e63946\" stroke=\"#7a1d25\"/><ellipse cy=\"-1\" rx=\"5\" ry=\"2.5\" fill=\"#ff4d6d\"/>", "photo": "<rect x=\"-9\" y=\"-7\" width=\"18\" height=\"14\" fill=\"#fff\" stroke=\"#333\"/><rect x=\"-7\" y=\"-5\" width=\"8\" height=\"10\" fill=\"#8d99ae\"/><path d=\"M2,-5 h6 v5 h-3 l-2,2 v-2 h-1z\" fill=\"#fff\" stroke=\"#333\" stroke-width=\".8\"/>"};
+const EGGS=[[[270, 262, 1, "pizza", "Pac-Man (1980): secondo il suo creatore Toru Iwatani, la forma del protagonista nacque guardando una pizza a cui mancava una fetta."], [122, 272, 1, "barrel", "I barili rotolanti del primo Donkey Kong (1981), dove debuttò un carpentiere baffuto chiamato Jumpman: di lì a poco sarebbe diventato Mario."]], [[330, 80, 0.8, "betamax", "Una cassetta Betamax: negli anni '80 perse la guerra dei formati contro il VHS, anche se molti la consideravano migliore."], [300, 290, 0.9, "card", "La tessera del videonoleggio: di tutti i negozi Blockbuster del mondo ne è rimasto uno solo, a Bend, in Oregon."]], [[112, 176, 1, "rope", "Il cordone di velluto dello Studio 54 di New York, aperto nel 1977: la discoteca più esclusiva del mondo, dove all'ingresso decideva tutto il buttafuori."], [288, 110, 1, "bicorne", "Il cappello di Napoleone: gli ABBA vinsero l'Eurovision nel 1974 con Waterloo, e da lì conquistarono le piste di mezzo mondo."]], [[262, 144, 0.9, "pencil", "Una musicassetta con la matita: negli anni '90 era il modo più economico per riavvolgere il nastro senza consumare le pile."], [322, 168, 0.9, "phones", "Cuffie e lettore di cassette: il Walkman di Sony, lanciato nel 1979, portò per la prima volta la musica personale per strada."]], [[250, 214, 0.9, "speaker", "L'altoparlante da finestrino dei drive-in. Il primo drive-in della storia aprì nel 1933 a Camden, nel New Jersey."], [60, 288, 0.9, "pinkcar", "Una Cadillac rosa in miniatura: Elvis Presley ne regalò una a sua madre nel 1955."]], [[110, 282, 1, "drum", "Il tamburo di una banda: Sgt. Pepper's dei Beatles (1967) fu tra i primi album rock con i testi delle canzoni stampati sulla copertina."], [262, 286, 0.9, "coin5", "Una moneta da 5 centesimi, il prezzo di una canzone: il juke-box deve il nome ai «juke joint», i locali da ballo del Sud degli Stati Uniti."]], [[340, 60, 1, "monolith", "Il monolite nero di 2001: Odissea nello spazio (1968). A bordo c'è HAL 9000: spostando ogni sua lettera di una posizione si ottiene IBM, ma Kubrick e Clarke negarono sempre che fosse voluto."], [288, 262, 1, "teleport", "Un raggio del teletrasporto: in Star Trek (1966) nacque anche per risparmiare sui costosi effetti degli atterraggi."]], [[330, 262, 1, "computer", "Un computer a tastiera beige: il Commodore 64, uscito nel 1982, è considerato il singolo modello di computer più venduto della storia."], [100, 280, 0.9, "sneaker", "Ritorno al futuro II fece sognare le scarpe che si allacciano da sole: nel 2016 ne fu prodotto davvero un modello."]], [[214, 100, 0.9, "jacket", "Il giubbotto di pelle di Fonzie: in Happy Days, la serie ambientata negli anni '50, accendeva il juke-box con un colpo di pugno."], [157, 142, 0.8, "burger", "Chi ha inventato l'hamburger è ancora conteso tra più città americane: a New Haven Louis' Lunch sostiene di servirlo dal 1900."]], [[134, 216, 0.9, "quill", "Penna e calamaio: Frankenstein nacque nel 1816 da una sfida tra amici a Villa Diodati, sul lago di Ginevra. Chi scrive la storia più spaventosa?"], [240, 12, 0.8, "balloon", "Nel Giro del mondo in 80 giorni di Verne (1872) non c'è nessuna mongolfiera: è un'invenzione del film del 1956. Phileas Fogg vince la scommessa grazie al fuso orario."]], [[182, 120, 1, "speedo", "In Ritorno al futuro (1985) la DeLorean viaggia nel tempo quando il tachimetro tocca le 88 miglia orarie."], [340, 270, 1, "skate", "Lo skateboard nacque in California negli anni '50, quando i surfisti misero delle ruote sotto una tavola per «surfare» anche sull'asfalto."]], [[372, 262, 1, "brick", "Il primo cellulare in commercio, il Motorola DynaTAC 8000X (1983), pesava quasi un chilo e costava circa 4.000 dollari."], [70, 262, 1, "gettone", "Il gettone telefonico: in Italia è rimasto in uso fino al 2001, e per anni valeva anche come moneta."]], [[110, 162, 0.8, "discs", "La torre di Hanoi fu inventata nel 1883 da Édouard Lucas, con una leggenda: quando i sacerdoti avranno spostato tutti i 64 dischi d'oro, il mondo finirà."], [292, 164, 0.8, "scarab", "Uno scarabeo egizio: nel 1922 Howard Carter scoprì la tomba di Tutankhamon quasi intatta, la più famosa scoperta archeologica del Novecento."]], [[40, 40, 1, "moon", "La Luna di Viaggio nella Luna (1902) di Georges Méliès, uno dei film più copiati illegalmente della sua epoca."], [200, 164, 0.9, "gramophone", "Il cantante di jazz (1927) fu il primo lungometraggio con dialoghi sincronizzati, incisi su dischi da suonare insieme alla pellicola: l'inizio della fine del cinema muto."]], [[290, 172, 0.9, "valve", "Una valvola termoionica: inventata nel 1904 da John Ambrose Fleming, rese possibile la radio moderna."], [60, 196, 0.9, "medal", "Una medaglia: Guglielmo Marconi vinse il premio Nobel per la fisica nel 1909."]], [[116, 178, 0.9, "rotor", "Un rotore di Enigma, la macchina cifrante tedesca violata anche grazie al lavoro di Alan Turing a Bletchley Park."], [320, 60, 0.9, "bird", "Un uccellino: Ian Fleming prese il nome James Bond da un ornitologo americano, autore di una guida sugli uccelli dei Caraibi."]], [[90, 128, 1, "flipper", "Nel 1976 Roger Sharpe fece tornare legale il flipper a New York: annunciò un colpo davanti al consiglio comunale e lo realizzò."], [380, 272, 1, "yen", "Una moneta da 100 yen: si racconta che Space Invaders (1978) fosse così popolare in Giappone da farle mancare."]], [[120, 188, 0.8, "digest", "Un giornalino in formato libretto: Topolino esce così in Italia dal 1949."], [372, 120, 0.9, "mask", "Una maschera nera: Diabolik, creato dalle sorelle Angela e Luciana Giussani nel 1962, diede il via al fumetto «nero» italiano."]], [[244, 272, 1, "sub", "Un sottomarino in miniatura: il Nautilus di Verne prende il nome da un vero sottomarino progettato da Robert Fulton intorno al 1800."], [380, 60, 1, "atom", "Nel 1954 fu varato il primo sottomarino a propulsione nucleare: si chiamava proprio Nautilus."]], [[300, 250, 1, "buzzer", "Il pulsante dei concorrenti: Rischiatutto di Mike Bongiorno, dal 1970, portò in Italia il quiz con il tabellone e le domande divise per categorie."], [270, 160, 0.9, "photo", "Il fotoromanzo nacque in Italia alla fine degli anni '40, con riviste come Bolero Film."]]];
 const SAVE_KEY="museo-enigmi-pop-v2";
 let save={done:{},coins:2,got:[],notes:{},bonus:[]};
 let cur=-1,phase="explore",hintStep=0,wrong=0,seq=[],noteTimer=null,lastPts=0;
@@ -668,13 +679,24 @@ const worth=()=>Math.max(Math.round(rooms[cur].value*0.3),Math.round(rooms[cur].
 const total=()=>Object.values(save.done).reduce((a,b)=>a+b,0);
 const doneCount=()=>Object.keys(save.done).length;
 const finalOpen=()=>[...Array(19).keys()].every(i=>save.done[i]!==undefined);
-async function loadSave(){try{const r=await window.storage.get(SAVE_KEY);if(r&&r.value)save=Object.assign(save,JSON.parse(r.value))}catch(e){}save.bonus=save.bonus||[]}
-async function persist(){try{await window.storage.set(SAVE_KEY,JSON.stringify(save))}catch(e){}}
+// salvataggio: dentro Claude usa window.storage, fuori (Chrome, Safari, schermata Home) usa la memoria del browser
+async function loadSave(){
+  let raw=null;
+  try{if(window.storage){const r=await window.storage.get(SAVE_KEY);raw=r&&r.value}}catch(e){}
+  if(!raw){try{raw=window.localStorage.getItem(SAVE_KEY)}catch(e){}}
+  if(raw){try{save=Object.assign(save,JSON.parse(raw))}catch(e){}}
+  save.bonus=save.bonus||[];save.got=save.got||[];save.notes=save.notes||{};save.done=save.done||{};
+}
+async function persist(){
+  const v=JSON.stringify(save);
+  try{window.localStorage.setItem(SAVE_KEY,v)}catch(e){}
+  try{if(window.storage)await window.storage.set(SAVE_KEY,v)}catch(e){}
+}
 function fb(msg,cls){const f=$("feedback");f.textContent=msg;f.className="feedback "+(cls||"")}
 function hud(){
   $("coinCount").textContent=save.coins;
   if(cur<0)return;
-  $("puzzleVal").textContent={explore:"da esplorare",puzzle:`vale ${worth()} punti`,item:"cerca il cimelio",done:"completata"}[phase];
+  $("puzzleVal").textContent={explore:"da esplorare",puzzle:`vale ${worth()} punti`,item:"cerca il cimelio",done:"completata",revisit:"completata"}[phase];
   const n=(save.notes[cur]||[]).length;$("notesCount").textContent=n||"";
   $("hintBtn").textContent=save.coins>0?"Indizio · 1 moneta":"Nessuna moneta";
 }
@@ -832,6 +854,10 @@ const LIGHT=`<g pointer-events="none"><rect width="400" height="300" fill="url(#
 const seal=([x,y])=>`<g class="seal" transform="translate(${x} ${y})"><circle r="16" fill="transparent"/><g class="seal-art"><rect x="-9" y="-6.5" width="18" height="13" rx="1" fill="#f3e6c4" stroke="#6b4a2b"/><path d="M-9,-6.5 L0,1 L9,-6.5" fill="none" stroke="#6b4a2b"/><circle cy="2.5" r="3.8" fill="#a4161a" stroke="#5a0b0e"/></g><path class="glint" d="M9,-11 l1.5,4 l4,1.5 l-4,1.5 l-1.5,4 l-1.5,-4 l-4,-1.5 l4,-1.5z" fill="#fff6c8"/></g>`;
 
 const bonusIn=i=>save.bonus.filter(k=>k.startsWith(i+"-")).length;
+function storageMode(){
+  if(window.storage)return "claude";
+  try{localStorage.setItem("__museo_test","1");const ok=localStorage.getItem("__museo_test")==="1";localStorage.removeItem("__museo_test");return ok?"local":"none"}catch(e){return "none"}
+}
 function showMenu(){
   cur=-1;$("game").hidden=true;$("menu").hidden=false;overlay.className="overlay";renderMenu();window.scrollTo({top:0});
 }
@@ -840,7 +866,13 @@ function renderMenu(){
   $("wings").innerHTML=TIERS.map(([n,sub,c],t)=>`<section class="wing" style="--tc:${c}"><h3>${n}<small>${sub}</small></h3><div class="rooms">${[0,1,2,3,4].map(k=>{const i=t*5+k,d=save.done[i],locked=i===19&&!finalOpen();
       return `<button class="room-card ${d!==undefined?'done':''}" data-r="${i}" ${locked?'disabled':''}><span class="rn">${i+1}</span><span class="rt">${rooms[i].name}</span><span class="rs">${locked?`chiusa: servono tutti i cimeli (${doneCount()} su 19)`:d!==undefined?`${rooms[i].relic.name} · ${d} punti · ★ ${bonusIn(i)}/2`:"da esplorare"}</span></button>`}).join("")}</div></section>`).join("");
   $("wings").querySelectorAll(".room-card").forEach(b=>b.onclick=()=>enterRoom(+b.dataset.r));
-  const next=[...Array(20).keys()].find(i=>save.done[i]===undefined&&(i<19||finalOpen()));
+  let next=[...Array(20).keys()].find(i=>save.done[i]===undefined&&(i<19||finalOpen()));
+  if(save.resume&&save.done[save.resume.room]===undefined)next=save.resume.room;
+  const mode=storageMode();
+  $("saveState").className="save-state "+mode;
+  $("saveState").textContent=mode==="claude"?"I progressi si salvano nel tuo account Claude."
+    :mode==="local"?"✓ I progressi si salvano su questo dispositivo."
+    :"⚠ Aperto in questo modo il browser non permette di salvare. Usa l'indirizzo github.io o l'icona sulla schermata Home.";
   $("continueBtn").disabled=next===undefined;$("continueBtn").onclick=()=>enterRoom(next);
   $("continueBtn").textContent=doneCount()?"Continua la visita":"Inizia la visita";
 }
@@ -851,10 +883,11 @@ $("resetBtn").onclick=()=>{
 };
 $("mapBtn").onclick=showMenu;
 
-function enterRoom(i){
+function enterRoom(i,replay){
+  const revisit=save.done[i]!==undefined&&!replay;
   cur=i;phase="explore";hintStep=0;wrong=0;seq=[];
   const room=rooms[i];
-  scene.innerHTML=DEFS+room.draw()+seal(SEALS[i])+LIGHT;
+  scene.innerHTML=DEFS+room.draw()+eggsSvg(i)+(revisit?"":seal(SEALS[i]))+LIGHT;
   scene.setAttribute("aria-label",room.name);
   $("menu").hidden=true;$("game").hidden=false;
   $("roomNo").textContent=`Sala ${i+1} di 20 · ${TIERS[Math.floor(i/5)][0]}`;$("roomTitle").textContent=room.name;
@@ -863,13 +896,15 @@ function enterRoom(i){
   exploreCount();
   $("hintLine").textContent="";fb("");note.className="note";overlay.className="overlay";
   $("hintBtn").disabled=false;
+  if(revisit)revisitCard();
+  else if(save.resume&&save.resume.room===i&&save.done[i]===undefined)restoreSolved();
   const f=$("frame");f.classList.remove("enter");void f.offsetWidth;f.classList.add("enter");
   hud();window.scrollTo({top:0});
 }
 function exploreCount(){
   if(phase!=="explore")return;
   const clues=[...new Set([...scene.querySelectorAll(".clue")].map(c=>c.dataset.msg))],got=save.notes[cur]||[];
-  $("puzzleArea").innerHTML=`<p class="explore-count">Indizi annotati: ${clues.map(m=>`<i class="${got.includes(m)?'got':''}"></i>`).join("")}</p><p class="explore-count" style="margin-top:6px">Easter egg nascosti: ${[0,1].map(k=>`<span style="color:${save.bonus.includes(cur+"-"+k)?'var(--gold)':'rgba(59,38,22,.3)'};font-size:20px">★</span>`).join("")}</p>`;
+  $("puzzleArea").innerHTML=`<p class="explore-count">Indizi annotati: ${clues.map(m=>`<i class="${got.includes(m)?'got':''}"></i>`).join("")}</p>`+starsHtml();
 }
 function openPuzzle(){
   const room=rooms[cur],p=room.puzzle,sl=scene.querySelector(".seal");if(sl)sl.remove();
@@ -885,8 +920,17 @@ function wrongAnswer(msg){
   wrong++;fb(msg,"bad");hud();
   $("card").classList.remove("shake");void $("card").offsetWidth;$("card").classList.add("shake");
 }
+function restoreSolved(){
+  const sl=scene.querySelector(".seal");if(sl)sl.remove();
+  lastPts=save.resume.pts;phase="item";hintStep=0;
+  $("puzzleNum").textContent=`Enigma n. ${String(cur+1).padStart(3,"0")}`;
+  $("riddle").textContent=rooms[cur].relic.seek;
+  $("puzzleArea").innerHTML=`<p class="hintline">Avevi già risolto l'enigma di questa sala: manca solo il cimelio. Trascina via quello che copre, tocca quello che si apre.</p>`;
+  fb(`Bentornato! L'enigma valeva ${lastPts} punti: sono tuoi appena trovi il cimelio.`,"good");
+  scene.querySelector(".item").classList.remove("hidden");
+}
 function solved(){
-  lastPts=worth();phase="item";hintStep=0;
+  lastPts=worth();phase="item";hintStep=0;save.resume={room:cur,pts:lastPts};persist();
   $("puzzleArea").innerHTML=`<p class="hintline">Ora gli oggetti della sala si possono spostare. Trascina via quello che copre, tocca quello che si apre.</p>`;
   $("riddle").textContent=rooms[cur].relic.seek;
   fb(`Esatto! +${lastPts} punti. Il cimelio è comparso, ma è ben nascosto.`,"good");
@@ -900,11 +944,11 @@ function svgEl(tag,attrs){const el=document.createElementNS("http://www.w3.org/2
 
 // trascinamento e tocchi
 let drag=null,down=null;
-scene.addEventListener("touchstart",e=>{if(phase==="item"&&e.target.closest&&e.target.closest(".movable"))e.preventDefault()},{passive:false});
+scene.addEventListener("touchstart",e=>{if((phase==="item"||phase==="revisit")&&e.target.closest&&e.target.closest(".movable"))e.preventDefault()},{passive:false});
 scene.addEventListener("pointerdown",e=>{
   const pt=svgPoint(e);down={pt,target:e.target,moved:false};
   const m=e.target.closest(".movable");
-  if(m&&phase==="item"){drag={m,start:pt,dx:+m.dataset.dx,dy:+m.dataset.dy};m.classList.add("dragging");scene.setPointerCapture(e.pointerId)}
+  if(m&&(phase==="item"||phase==="revisit")&&!e.target.closest(".egg-obj")){drag={m,start:pt,dx:+m.dataset.dx,dy:+m.dataset.dy};m.classList.add("dragging");scene.setPointerCapture(e.pointerId)}
 });
 scene.addEventListener("pointermove",e=>{
   if(!drag)return;const pt=svgPoint(e),ddx=pt.x-drag.start.x,ddy=pt.y-drag.start.y;
@@ -919,16 +963,12 @@ scene.addEventListener("pointerup",()=>{
 scene.addEventListener("pointercancel",()=>{if(drag)drag.m.classList.remove("dragging");drag=null;down=null});
 
 function tap(pt,t){
-  if(phase==="done"||cur<0)return;
+  if(cur<0)return;
+  const eg=t.closest(".egg-obj");
+  if(eg&&phase!=="done"){collectEgg(+eg.dataset.k,eg,pt);return}
+  if(phase==="done")return;
   if(phase==="item"&&t.closest(".item")){relicFound(pt);return}
   if(phase==="explore"&&t.closest(".seal")){openPuzzle();return}
-  const bh=BONUS[cur].findIndex(([x,y])=>Math.hypot(pt.x-x,pt.y-y)<14),bk=cur+"-"+bh;
-  if(bh>=0){const txt=BONUS[cur][bh][2];
-    if(!save.bonus.includes(bk)){save.bonus.push(bk);persist();
-      const g=svgEl("text",{x:pt.x,y:pt.y,class:"coin-pop","text-anchor":"middle","font-size":"22",fill:"#ffd76a",stroke:"#5a3e0e","stroke-width":"1"});g.textContent="★";scene.appendChild(g);setTimeout(()=>g.remove(),900);
-      showNote(`★ Easter egg ${bonusIn(cur)} di 2 in questa sala: ${txt}`,7000)}
-    else showNote(`★ ${txt}`,5000);
-    exploreCount();return}
   const hit=rooms[cur].coins.findIndex(([x,y])=>Math.hypot(pt.x-x,pt.y-y)<16),key=cur+"-"+hit;
   if(hit>=0&&!save.got.includes(key)){
     save.got.push(key);save.coins++;persist();hud();
@@ -936,7 +976,7 @@ function tap(pt,t){
     scene.appendChild(g);setTimeout(()=>g.remove(),900);showNote("Hai trovato una moneta indizio!",2500);return;
   }
   const mv=t.closest(".movable");
-  if(mv&&phase!=="item"){
+  if(mv&&(phase==="explore"||phase==="puzzle")){
     showNote(phase==="explore"?"Sembra che si possa spostare, ma il curatore non vuole che tocchi nulla prima di aver risolto l'enigma.":"È bloccato: prima risolvi l'enigma.",3200);
     mv.classList.remove("nudge");void mv.getBBox();mv.classList.add("nudge");return;
   }
@@ -958,17 +998,38 @@ function tap(pt,t){
   const r=svgEl("circle",{cx:pt.x,cy:pt.y,r:2,class:"ripple"});scene.appendChild(r);setTimeout(()=>r.remove(),500);
 }
 
+function collectEgg(k,el,pt){
+  const key=cur+"-"+k,txt=EGGS[cur][k][4];
+  if(!save.bonus.includes(key)){
+    save.bonus.push(key);persist();el.classList.add("found");el.classList.remove("reveal");
+    const g=svgEl("text",{x:pt.x,y:pt.y-6,class:"coin-pop","text-anchor":"middle","font-size":"22",fill:"#ffd76a",stroke:"#5a3e0e","stroke-width":"1"});g.textContent="★";scene.appendChild(g);setTimeout(()=>g.remove(),900);
+    showNote(`★ Easter egg ${bonusIn(cur)} di 2: ${txt}`,7500);
+  } else showNote(`★ ${txt}`,6000);
+  refreshCard();
+}
+const eggsSvg=i=>EGGS[i].map(([x,y,sc,art],k)=>`<g class="egg-obj ${save.bonus.includes(i+"-"+k)?"found":""}" data-k="${k}" transform="translate(${x} ${y})"><circle r="12" fill="transparent"/><g class="egg-art"><g transform="scale(${sc})">${EGG_ART[art]}</g></g></g>`).join("");
+const starsHtml=()=>`<p class="explore-count" style="margin-top:6px">Easter egg in questa sala: ${[0,1].map(k=>`<span style="color:${save.bonus.includes(cur+"-"+k)?'var(--gold)':'rgba(59,38,22,.3)'};font-size:20px">★</span>`).join("")}</p>`;
+function refreshCard(){if(phase==="explore")exploreCount();else if(phase==="revisit")revisitCard()}
+function revisitCard(){
+  phase="revisit";hintStep=0;
+  $("puzzleNum").textContent=`Sala n. ${String(cur+1).padStart(3,"0")}`;
+  $("riddle").textContent=`Hai già risolto questa sala e trovato ${rooms[cur].relic.name.toLowerCase()}. Ora puoi girarla con calma: gli oggetti si spostano, gli sportelli si aprono, e gli easter egg sono piccoli oggetti nascosti nella scena, ognuno legato a un riferimento pop.`;
+  $("puzzleArea").innerHTML=starsHtml()+`<div class="row" style="margin-top:10px"><button class="alt" id="replayBtn">Rigioca l'enigma</button></div>`;
+  $("replayBtn").onclick=()=>enterRoom(cur,true);
+  $("hintBtn").disabled=[0,1].every(k=>save.bonus.includes(cur+"-"+k));hud();
+}
 function relicFound(pt){
   phase="done";const room=rooms[cur],i=cur;
-  save.done[i]=Math.max(save.done[i]||0,lastPts);persist();
+  save.done[i]=Math.max(save.done[i]||0,lastPts);delete save.resume;persist();
   scene.appendChild(svgEl("circle",{class:"found-ring",cx:pt.x,cy:pt.y,r:22}));
   $("hintBtn").disabled=true;hud();
   setTimeout(()=>{
     if(i===19){finish();return}
     const next=i<18?i+1:(finalOpen()?19:null);
     overlay.innerHTML=`<svg class="relic-art" viewBox="-16 -16 32 32" aria-hidden="true">${ITEMS[room.relic.key]}</svg><h2>${room.relic.name}</h2><p class="ref">${room.relic.ref}</p><div class="stamp">lettera incisa: ${room.letter}</div>
-      <div class="row">${next!==null?`<button id="nextBtn">Sala successiva</button>`:""}<button class="alt" id="toMap">Pianta del museo</button></div>`;
+      <div class="row">${next!==null?`<button id="nextBtn">Sala successiva</button>`:""}<button class="alt" id="stayBtn">Resta a cercare gli easter egg</button><button class="alt" id="toMap">Pianta del museo</button></div>`;
     overlay.className="overlay show";overlay.scrollTop=0;
+    $("stayBtn").onclick=stayInRoom;
     if(next!==null){$("nextBtn").onclick=()=>enterRoom(next);$("nextBtn").focus()}
     $("toMap").onclick=showMenu;
   },700);
@@ -977,6 +1038,9 @@ function relicFound(pt){
 $("hintBtn").onclick=()=>{
   const room=rooms[cur];
   if(save.coins<=0){$("hintLine").textContent="Non hai monete indizio. Esplora le sale: qualcuna è nascosta negli angoli.";return}
+  if(phase==="revisit"){const k=[0,1].find(k=>!save.bonus.includes(cur+"-"+k));
+    if(k===undefined){$("hintLine").textContent="Hai già trovato entrambi gli easter egg di questa sala.";return}
+    save.coins--;const el=scene.querySelector(`.egg-obj[data-k="${k}"]`);if(el)el.classList.add("reveal");$("hintLine").textContent="Indizio: uno degli easter egg ora pulsa. Guarda bene la scena.";persist();hud();return}
   if(phase==="explore"&&hintStep===0){save.coins--;hintStep=1;const sl=scene.querySelector(".seal");if(sl)sl.classList.add("reveal");$("hintLine").textContent="Indizio: il sigillo del curatore ora pulsa. Guarda bene la scena.";$("hintBtn").disabled=true}
   else if(phase==="puzzle"&&hintStep<room.puzzle.hints.length){save.coins--;hintStep++;$("hintLine").textContent="Indizio: "+room.puzzle.hints.slice(0,hintStep).join(" ");if(hintStep>=room.puzzle.hints.length)$("hintBtn").disabled=true}
   else if(phase==="item"&&hintStep===0){save.coins--;hintStep=1;$("hintLine").textContent="Indizio: "+room.relic.where;$("hintBtn").disabled=true}
@@ -985,7 +1049,7 @@ $("hintBtn").onclick=()=>{
 
 function renderNotebook(){
   const order=[cur,...Object.keys(save.notes).map(Number).filter(i=>i!==cur).sort((a,b)=>a-b)].filter(i=>i>=0&&(save.notes[i]||[]).length);
-  const eggs=save.bonus.map(k=>{const [r,b]=k.split("-").map(Number);return BONUS[r][b][2]});
+  const eggs=save.bonus.map(k=>{const [r,b]=k.split("-").map(Number);return EGGS[r][b][4]});
   const eggHtml=eggs.length?`<h4>★ Easter egg trovati (${eggs.length} su 40)</h4><ul>${eggs.map(t=>`<li>${t}</li>`).join("")}</ul>`:"";
   $("nbBody").innerHTML=eggHtml+(order.length?order.map(i=>`<h4>Sala ${i+1} · ${rooms[i].name}</h4><ul>${save.notes[i].map(m=>`<li>${m}</li>`).join("")}</ul>`).join(""):`<p class="empty-nb">Ancora nessun indizio. Tocca gli oggetti delle sale per annotarli qui.</p>`);
 }
@@ -993,12 +1057,13 @@ $("notesBtn").onclick=()=>{renderNotebook();$("notebook").hidden=false;$("nbClos
 $("nbClose").onclick=()=>$("notebook").hidden=true;
 $("notebook").onclick=e=>{if(e.target.id==="notebook")$("notebook").hidden=true};
 
+function stayInRoom(){overlay.className="overlay";const ring=scene.querySelector(".found-ring");if(ring)ring.remove();fb("");$("hintLine").textContent="";revisitCard();window.scrollTo({top:0,behavior:"smooth"})}
 function finish(){
   const max=rooms.reduce((a,r)=>a+r.value,0),pct=total()/max;
   const title=pct>.95?"Mente da gran maestro":pct>.8?"Investigatore acuto":pct>.6?"Apprendista brillante":"Visitatore curioso";
   const last=rooms[19].relic;
-  overlay.innerHTML=`<svg class="relic-art" viewBox="-16 -16 32 32" aria-hidden="true">${ITEMS[last.key]}</svg><h2>${last.name}</h2><p class="ref">${last.ref}</p><p>Hai ritrovato tutti i venti cimeli del museo.</p><div class="big">${total()} / ${max}</div><p><b>${title}</b></p><div class="row"><button id="toMap">Torna alla pianta</button></div>`;
-  overlay.className="overlay show";$("toMap").onclick=showMenu;$("toMap").focus();
+  overlay.innerHTML=`<svg class="relic-art" viewBox="-16 -16 32 32" aria-hidden="true">${ITEMS[last.key]}</svg><h2>${last.name}</h2><p class="ref">${last.ref}</p><p>Hai ritrovato tutti i venti cimeli del museo.</p><div class="big">${total()} / ${max}</div><p><b>${title}</b></p><div class="row"><button class="alt" id="stayBtn">Resta nello studio</button><button id="toMap">Torna alla pianta</button></div>`;
+  overlay.className="overlay show";$("toMap").onclick=showMenu;$("stayBtn").onclick=stayInRoom;$("toMap").focus();
 }
 loadSave().then(showMenu);
 </script>
