@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Il Museo degli Enigmi Pop</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Crimson+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#efe2c4;--paper2:#e4d2a9;--ink:#3b2616;--teal:#2f6f6a;--red:#9b2d20;--gold:#c8962e}
+  *{box-sizing:border-box}
+  html{background:#2c4540}
+  body{margin:0;min-height:100vh;color:var(--ink);font-family:"Crimson Pro",Georgia,serif;font-size:17px;
+    background:radial-gradient(ellipse at top,#5d7f73 0%,#2c4540 700px) no-repeat,#2c4540}
+  main{max-width:760px;margin:0 auto;padding:18px 12px 40px}
+  header{text-align:center;color:var(--paper);margin-bottom:14px}
+  h1{font-family:"IM Fell English SC",Georgia,serif;font-weight:400;font-size:clamp(28px,7vw,46px);margin:0;line-height:1.05;text-shadow:0 2px 0 #1c2e2a}
+  .sub{margin:6px auto 0;font-family:"IM Fell English",serif;font-style:italic;font-size:17px;max-width:54ch;opacity:.92;line-height:1.45}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--paper);font-size:15px;margin-bottom:8px}
+  .coins{display:flex;align-items:center;gap:6px;font-weight:700}
+  .coin{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fbe39a,var(--gold) 60%,#8a6116);border:1.5px solid #5a3e0e;display:inline-block}
+  .frame{position:relative;border:6px solid #5a3e24;border-radius:6px;outline:2px solid var(--gold);outline-offset:-10px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.45);background:#000}
+  svg.scene{display:block;width:100%;height:auto;cursor:pointer;touch-action:manipulation;filter:sepia(.28) saturate(.9) contrast(1.02);user-select:none;-webkit-user-select:none}
+  .movable{cursor:grab;touch-action:none}
+  .movable.dragging{cursor:grabbing}
+  .loc{position:absolute;top:10px;left:10px;background:rgba(239,226,196,.93);border:2px solid var(--ink);border-radius:4px;padding:3px 10px;font-family:"IM Fell English SC",serif;font-size:15px;pointer-events:none}
+  .note{position:absolute;left:10px;right:10px;bottom:10px;background:var(--paper);border:2px solid var(--ink);border-radius:6px;padding:8px 12px;font-size:15px;display:none;font-style:italic;box-shadow:0 4px 0 rgba(0,0,0,.25);pointer-events:none}
+  .note.show{display:block}
+  .card{margin-top:18px;background:var(--paper);border-radius:6px;box-shadow:0 8px 20px rgba(0,0,0,.4);background-image:repeating-linear-gradient(0deg,transparent 0 27px,rgba(122,82,48,.08) 27px 28px)}
+  .card-head{display:flex;justify-content:space-between;align-items:baseline;padding:10px 16px;background:var(--red);color:var(--paper);border-radius:6px 6px 0 0}
+  .card-head h2{margin:0;font-family:"IM Fell English SC",serif;font-weight:400;font-size:22px}
+  .card-head span{font-family:"IM Fell English",serif;font-size:17px}
+  .card-body{padding:14px 16px 16px}
+  .riddle{font-size:18px;line-height:1.55;margin:0 0 14px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input{flex:1 1 160px;font:600 19px "Crimson Pro",serif;padding:9px 12px;border:2px solid var(--ink);border-radius:4px;background:#fbf5e6;text-transform:uppercase;letter-spacing:.06em;min-width:0;color:var(--ink)}
+  input:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+  button{font-family:"IM Fell English SC",serif;font-size:17px;padding:8px 16px;border:2px solid var(--ink);border-radius:4px;background:var(--teal);color:var(--paper);cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+  button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+  button:disabled{opacity:.4;cursor:default}
+  button.alt{background:var(--paper2);color:var(--ink)}
+  .feedback{min-height:24px;margin:12px 0 0;font-weight:700}
+  .feedback.bad{color:var(--red)} .feedback.good{color:var(--teal)}
+  .hintline{margin:10px 0 0;font-style:italic}
+  /* lucchetto */
+  .lock{display:flex;gap:10px;justify-content:center;margin:4px 0 14px;flex-wrap:wrap}
+  .dial{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .dial button{padding:2px 14px;font-size:15px;box-shadow:0 2px 0 var(--ink)}
+  .dial output{min-width:52px;text-align:center;font-family:"IM Fell English SC",serif;font-size:30px;background:#fbf5e6;border:2px solid var(--ink);border-radius:4px;padding:2px 6px}
+  .dial small{font-size:13px}
+  /* scelte */
+  .choices{display:grid;gap:8px;margin-bottom:6px}
+  .choices button{padding:8px 4px}
+  /* tubi */
+  .pipes-wrap{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px}
+  .pipes{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:3px;width:var(--w);background:var(--ink);padding:3px;border-radius:4px}
+  .pipes button{padding:0;aspect-ratio:1;background:#2b2e4a;box-shadow:none;border:none;border-radius:2px}
+  .pipes button svg{display:block;width:100%;height:100%;transition:transform .15s}
+  .side{display:flex;flex-direction:column;gap:3px;font-size:13px;width:44px;text-align:center}
+  .side span{height:calc(var(--w)/var(--n) - 1px);display:grid;place-items:center;line-height:1.1}
+  .side .on{font-weight:700;color:var(--red)}
+  /* scorrevole */
+  .slide{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:min(240px,66vw);margin:0 auto 10px;background:var(--ink);padding:3px;border-radius:4px}
+  .slide button{padding:0;aspect-ratio:1;border:none;box-shadow:none;border-radius:2px;background:#333;overflow:hidden}
+  .slide button.empty{background:var(--paper2);cursor:default}
+  .slide svg{display:block;width:100%;height:100%}
+  /* luci */
+  .lights{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(220px,62vw);margin:0 auto 10px;padding:10px;background:#1c1410;border-radius:8px}
+  .lights button{aspect-ratio:1;border-radius:50%;padding:0;background:#3b2f2a;border:2px solid #6b5a50;box-shadow:none}
+  .lights button.on{background:radial-gradient(circle,#fff6c8,#ff5fa2 55%,#b01060);border-color:#ffb3d1;box-shadow:0 0 14px #ff5fa2}
+  /* ordina */
+  .shelf{display:flex;gap:6px;justify-content:center;align-items:flex-end;margin:0 0 12px;padding:8px 8px 0;border-bottom:8px solid #7a4a24;flex-wrap:wrap}
+  .shelf button{writing-mode:vertical-rl;transform:rotate(180deg);height:150px;width:44px;padding:6px 2px;font-size:15px;line-height:1.1;box-shadow:none;border-radius:3px 3px 0 0}
+  .shelf button.sel{outline:3px solid var(--gold);outline-offset:2px}
+  /* anagramma */
+  .slots,.pool{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:10px;min-height:40px}
+  .slots{gap:14px}.slots .word{display:flex;gap:3px}
+  .slots button,.pool button{width:27px;height:34px;padding:0;font-size:18px;box-shadow:0 2px 0 var(--ink)}
+  .slots button{background:#fbf5e6;color:var(--ink)}
+  .slots span{width:27px;height:34px;border-bottom:3px dotted var(--ink)}
+  .nono{display:grid;gap:2px;width:min(300px,82vw);margin:0 auto 10px;align-items:end}
+  .nono .cc{text-align:center;font-weight:700;font-size:14px;line-height:1.1;padding-bottom:3px}
+  .nono .rc{text-align:right;font-weight:700;font-size:14px;padding-right:6px;align-self:center;white-space:nowrap}
+  .nono button{aspect-ratio:1;padding:0;background:#fbf5e6;border:1.5px solid var(--ink);box-shadow:none;border-radius:2px}
+  .nono button.fill{background:var(--ink)}
+  .magic{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:min(220px,62vw);margin:0 auto 10px}
+  .magic button{aspect-ratio:1;font-size:28px;background:#fbf5e6;color:var(--ink);border-radius:50%;box-shadow:0 3px 0 var(--ink)}
+  .magic button.given{background:var(--gold);opacity:1}
+  .hanoi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px}
+  .hanoi button{position:relative;height:130px;display:flex;flex-direction:column-reverse;align-items:center;justify-content:flex-start;gap:2px;padding:6px 2px;background:#d6c7a1;box-shadow:0 3px 0 var(--ink)}
+  .hanoi button.sel{outline:3px solid var(--red);outline-offset:2px}
+  .hanoi .pole{position:absolute;left:50%;bottom:6px;width:6px;height:112px;margin-left:-3px;background:#6b5a40;border-radius:3px}
+  .hanoi .disc{position:relative;height:18px;border-radius:9px;border:2px solid var(--ink)}
+  .mm-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+  .mm-row.current{padding:6px;border:2px dashed var(--ink);border-radius:6px;margin:8px 0}
+  .peg{width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);display:inline-block;padding:0;box-shadow:none}
+  .peg.empty{background:transparent;border-style:dotted}
+  .mm-fb{margin-left:8px;font-size:17px;letter-spacing:2px}
+  .mm-pal{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:6px 0 10px}
+  .mm-pal .peg{width:38px;height:38px}
+  .display{font-family:"IM Fell English SC",serif;font-size:28px;text-align:center;background:#1b1b1b;color:#9ef01a;border-radius:4px;padding:4px;margin:0 auto 10px;width:min(240px,70vw);letter-spacing:4px}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:min(240px,70vw);margin:0 auto 10px}
+  .keypad button{display:flex;flex-direction:column;align-items:center;padding:6px 0;font-size:22px;line-height:1}
+  .keypad small{font-size:11px;font-family:"Crimson Pro",serif;letter-spacing:1px;margin-top:2px}
+  .wheel{overflow-x:auto;margin-bottom:10px;padding-bottom:4px}
+  .wrow{display:flex;gap:1px;min-width:max-content}
+  .wrow b{width:56px;font-size:13px;font-weight:600;align-self:center}
+  .wrow span{width:13px;text-align:center;font-family:"IM Fell English SC",serif;font-size:14px}
+  .wrow#inner span{color:var(--red)}
+  .collection{margin-top:18px;background:rgba(239,226,196,.12);border:1px solid rgba(239,226,196,.35);border-radius:6px;padding:10px 14px;color:var(--paper)}
+  .collection h3{margin:0 0 8px;font-family:"IM Fell English SC",serif;font-weight:400;font-size:19px}
+  .relics{display:flex;flex-wrap:wrap;gap:6px}
+  .relics div{border:1px solid rgba(239,226,196,.5);border-radius:4px;padding:3px 8px;font-size:14px}
+  .relics div b{font-family:"IM Fell English SC",serif;color:var(--gold);margin-right:5px;font-size:17px}
+  .relics div.empty{opacity:.4}
+  .overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(28,20,12,.9);color:var(--paper);text-align:center;padding:18px;overflow:auto}
+  .overlay.show{display:flex}
+  .overlay h2{font-family:"IM Fell English SC",serif;font-weight:400;font-size:clamp(24px,6.5vw,42px);margin:0;color:var(--gold)}
+  .overlay p{margin:0;max-width:40ch;line-height:1.45}
+  .overlay .ref{font-style:italic;font-size:16px}
+  .big{font-family:"IM Fell English SC",serif;font-size:40px;color:var(--gold)}
+  .ripple{fill:none;stroke:#fff;stroke-width:2;animation:rip .5s ease-out forwards;pointer-events:none}
+  @keyframes rip{from{r:2;opacity:1}to{r:18;opacity:0}}
+  .found-ring{fill:none;stroke:#ffd76a;stroke-width:3;animation:pulse 1s ease-in-out infinite;pointer-events:none}
+  @keyframes pulse{50%{stroke-width:6;opacity:.6}}
+  .coin-pop{animation:pop .9s ease-out forwards;pointer-events:none}
+  @keyframes pop{to{transform:translateY(-26px);opacity:0}}
+  .flash{fill:#fff;opacity:.7;pointer-events:none;animation:fl .35s forwards}
+  @keyframes fl{to{opacity:0}}
+  .item.hidden{display:none}
+  .shake{animation:sh .35s}
+  @keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  @media (prefers-reduced-motion:reduce){.ripple,.found-ring,.flash,.shake,.coin-pop{animation:none}.pipes button svg{transition:none}}
+
+  [hidden]{display:none!important}
+  main{padding-top:14px}
+  .hero{text-align:center;color:var(--paper)}
+  .facade{width:min(320px,84vw);height:auto;display:block;margin:0 auto 8px;filter:drop-shadow(0 10px 12px rgba(0,0,0,.35))}
+  .stats{display:flex;justify-content:center;gap:10px;margin:16px 0 12px}
+  .stats div{background:rgba(239,226,196,.1);border:1px solid rgba(239,226,196,.35);border-radius:8px;padding:6px 14px;color:var(--paper);font-size:14px;text-align:center;min-width:86px}
+  .stats b{display:block;font-family:"IM Fell English SC",serif;font-size:26px;color:var(--gold);font-weight:400;line-height:1.1}
+  .center{justify-content:center}
+  .wing{margin-top:18px;background:var(--paper);border-radius:8px;padding:12px 12px 14px;box-shadow:0 8px 18px rgba(0,0,0,.35);border-top:8px solid var(--tc)}
+  .wing h3{margin:0 0 10px;font-family:"IM Fell English SC",serif;font-weight:400;font-size:21px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-bottom:1.5px solid rgba(59,38,22,.35);padding-bottom:4px}
+  .wing h3 small{font-family:"IM Fell English",serif;font-style:italic;font-size:15px;color:var(--tc)}
+  .rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+  .room-card{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:#fbf5e6;color:var(--ink);font-family:"Crimson Pro",serif;font-size:15px;padding:8px 10px;box-shadow:0 3px 0 var(--ink);line-height:1.2;border-color:var(--ink)}
+  .room-card .rn{font-family:"IM Fell English SC",serif;font-size:22px;color:var(--tc)}
+  .room-card .rs{font-size:13px;font-style:italic;opacity:.85}
+  .room-card.done{background:#e3ecd9}
+  .room-card:disabled{opacity:.55}
+  .topbar{display:flex;align-items:center;gap:8px;color:var(--paper);margin-bottom:10px}
+  .tb-mid{flex:1;min-width:0;text-align:center;line-height:1.15}
+  .tb-mid span{display:block;font-size:13px;opacity:.8}
+  .tb-mid strong{font-family:"IM Fell English SC",serif;font-weight:400;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  button.small{padding:5px 10px;font-size:15px}
+  .toolbar{display:flex;gap:8px;margin-top:14px}
+  .toolbar button{flex:1;padding:8px 6px}
+  .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--red);color:var(--paper);font-family:"Crimson Pro",serif;font-size:13px;margin-left:6px;line-height:20px}
+  .badge:empty{display:none}
+  .explore-count{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0}
+  .explore-count i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);display:inline-block}
+  .explore-count i.got{background:var(--teal)}
+  .seal{cursor:pointer}
+  .seal .glint{animation:glint 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center;opacity:0}
+  @keyframes glint{0%,68%,100%{opacity:0;transform:scale(.3)}80%{opacity:1;transform:scale(1.25)}}
+  .seal.reveal .seal-art{animation:pulseS .9s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+  @keyframes pulseS{50%{transform:scale(1.6)}}
+  .scene .movable,.scene .toggle{filter:url(#sh)}
+  .nudge{animation:nudge .45s;transform-box:fill-box}
+  @keyframes nudge{20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+  .frame.enter{animation:enter .55s ease-out}
+  @keyframes enter{from{opacity:0;transform:scale(.97)}}
+  .note.show{animation:noteIn .25s ease-out}
+  @keyframes noteIn{from{opacity:0;transform:translateY(6px)}}
+  .card{transition:box-shadow .3s}
+  .card.open{animation:enter .45s ease-out}
+  .modal{position:fixed;inset:0;background:rgba(20,12,6,.72);display:flex;align-items:flex-end;justify-content:center;z-index:10;padding:10px}
+  .sheet{background:var(--paper);border-radius:10px;max-width:720px;width:100%;max-height:82vh;overflow:auto;padding:16px 18px;box-shadow:0 -6px 20px rgba(0,0,0,.4);background-image:repeating-linear-gradient(0deg,transparent 0 27px,rgba(122,82,48,.1) 27px 28px)}
+  .sheet h2{font-family:"IM Fell English SC",serif;font-weight:400;margin:0;font-size:26px}
+  .sheet h4{margin:14px 0 4px;font-family:"IM Fell English SC",serif;font-weight:400;font-size:18px;color:var(--red)}
+  .sheet ul{margin:0;padding-left:20px}
+  .sheet li{margin-bottom:6px;font-style:italic;line-height:1.4}
+  .sheet .empty-nb{font-style:italic;opacity:.7}
+  .relic-art{width:110px;height:110px;background:radial-gradient(circle,#fff4d6 30%,#c8962e);border-radius:50%;border:4px solid var(--gold);box-shadow:0 0 30px rgba(200,150,46,.5)}
+  .stamp{font-family:"IM Fell English SC",serif;border:2px solid var(--gold);color:var(--gold);padding:3px 14px;border-radius:4px;transform:rotate(-3deg);font-size:19px}
+  .overlay{position:fixed;inset:0;z-index:20;background:radial-gradient(circle at 50% 40%,#3a2a18,#140c05 75%);justify-content:center}
+  .overlay .row{justify-content:center}
+  .relic-art{flex-shrink:0}
+  @media (prefers-reduced-motion:reduce){.seal .glint,.seal.reveal .seal-art,.nudge,.frame.enter,.card.open,.note.show{animation:none}.seal .glint{opacity:1}}
+</style>
+</head>
+<body>
+<main>
+  <section id="menu">
+    <header class="hero">
+      <svg class="facade" viewBox="0 0 340 172" aria-hidden="true">
+        <path d="M22,72 L170,20 L318,72z" fill="#efe2c4" stroke="#3b2616" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="170" cy="52" r="13" fill="#c8962e" stroke="#3b2616" stroke-width="2.5"/><text x="170" y="57" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="13" fill="#3b2616">?</text>
+        <rect x="28" y="70" width="284" height="14" fill="#e4d2a9" stroke="#3b2616" stroke-width="3"/><rect x="40" y="84" width="16" height="66" fill="#efe2c4" stroke="#3b2616" stroke-width="2.5"/><rect x="37" y="82" width="22" height="6" fill="#e4d2a9" stroke="#3b2616" stroke-width="2"/><rect x="82" y="84" width="16" height="66" fill="#efe2c4" stroke="#3b2616" stroke-width="2.5"/><rect x="79" y="82" width="22" height="6" fill="#e4d2a9" stroke="#3b2616" stroke-width="2"/><rect x="124" y="84" width="16" height="66" fill="#efe2c4" stroke="#3b2616" stroke-width="2.5"/><rect x="121" y="82" width="22" height="6" fill="#e4d2a9" stroke="#3b2616" stroke-width="2"/><rect x="200" y="84" width="16" height="66" fill="#efe2c4" stroke="#3b2616" stroke-width="2.5"/><rect x="197" y="82" width="22" height="6" fill="#e4d2a9" stroke="#3b2616" stroke-width="2"/><rect x="242" y="84" width="16" height="66" fill="#efe2c4" stroke="#3b2616" stroke-width="2.5"/><rect x="239" y="82" width="22" height="6" fill="#e4d2a9" stroke="#3b2616" stroke-width="2"/><rect x="284" y="84" width="16" height="66" fill="#efe2c4" stroke="#3b2616" stroke-width="2.5"/><rect x="281" y="82" width="22" height="6" fill="#e4d2a9" stroke="#3b2616" stroke-width="2"/>
+        <path d="M150,150 v-34 a20,20 0 0,1 40,0 v34z" fill="#ffd98a" stroke="#3b2616" stroke-width="3"/><path d="M170,96 v54" stroke="#3b2616" stroke-width="2"/>
+        <path d="M62,90 h14 v34 l-7,-6 l-7,6z M264,90 h14 v34 l-7,-6 l-7,6z" fill="#9b2d20" stroke="#3b2616" stroke-width="1.5"/>
+        <rect x="14" y="150" width="312" height="10" fill="#e4d2a9" stroke="#3b2616" stroke-width="3"/><rect x="4" y="158" width="332" height="11" fill="#d6c7a1" stroke="#3b2616" stroke-width="3"/>
+      </svg>
+      <h1>Il Museo degli Enigmi Pop</h1>
+      <p class="sub">Venti sale, venti cimeli della cultura popolare e quaranta easter egg nascosti negli angoli. Esplora ogni sala, raccogli gli indizi nel taccuino, trova il sigillo del curatore e risolvi il suo enigma: solo allora potrai frugare tra gli oggetti e scovare il cimelio.</p>
+    </header>
+    <div class="stats" id="stats"></div>
+    <div class="row center"><button id="continueBtn">Continua la visita</button><button class="alt" id="resetBtn">Ricomincia da zero</button></div>
+    <div id="wings"></div>
+  </section>
+
+  <section id="game" hidden>
+    <div class="topbar">
+      <button class="alt small" id="mapBtn" aria-label="Torna alla pianta del museo">◂ Pianta</button>
+      <div class="tb-mid"><span id="roomNo"></span><strong id="roomTitle"></strong></div>
+      <span class="coins" title="Monete indizio"><span class="coin" aria-hidden="true"></span><span id="coinCount"></span></span>
+    </div>
+    <div class="frame" id="frame">
+      <svg class="scene" id="scene" viewBox="0 0 400 300" role="img"></svg>
+      <div class="note" id="note" aria-live="polite"></div>
+      <div class="overlay" id="overlay"></div>
+    </div>
+    <div class="toolbar">
+      <button class="alt" id="notesBtn">Taccuino<span class="badge" id="notesCount"></span></button>
+      <button class="alt" id="hintBtn">Indizio · 1 moneta</button>
+    </div>
+    <section class="card" id="card">
+      <div class="card-head"><h2 id="puzzleNum"></h2><span id="puzzleVal"></span></div>
+      <div class="card-body">
+        <p class="riddle" id="riddle"></p>
+        <div id="puzzleArea"></div>
+        <p class="feedback" id="feedback" aria-live="polite"></p>
+        <p class="hintline" id="hintLine"></p>
+      </div>
+    </section>
+  </section>
+
+  <div class="modal" id="notebook" hidden>
+    <div class="sheet" role="dialog" aria-label="Taccuino">
+      <div class="row" style="justify-content:space-between"><h2>Il taccuino</h2><button class="alt small" id="nbClose">Chiudi</button></div>
+      <div id="nbBody"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ================= strumenti di disegno =================
+function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646}}
+const clue=(msg,inner)=>`<g class="clue" data-msg="${msg}">${inner}</g>`;
+const mov=inner=>`<g class="movable" data-dx="0" data-dy="0">${inner}</g>`;
+const tog=(closed,open)=>`<g class="toggle"><g class="t-closed">${closed}</g><g class="t-open" style="display:none">${open}</g></g>`;
+const ITEMS={
+  pixel:`<rect x="-2.6" y="-2.6" width="5.2" height="5.2" fill="#9a9a9a"/>`,
+  vhs:`<rect x="-12" y="-7" width="24" height="14" rx="1.5" fill="#141414"/><circle cx="-5" cy="0" r="3" fill="#d9d9d9"/><circle cx="5" cy="0" r="3" fill="#d9d9d9"/><rect x="-3" y="-2" width="6" height="4" fill="#3a3a3a"/>`,
+  floppy:`<rect x="-8" y="-8" width="16" height="16" rx="1" fill="#2e2870"/><rect x="-4" y="-8" width="8" height="6" fill="#9a98b5"/><rect x="-5.5" y="1.5" width="11" height="6" fill="#bdb8e0"/>`,
+  record:`<circle r="8" fill="#d4a017"/><circle r="5.5" fill="none" stroke="#a87c10" stroke-width="1"/><circle r="2.2" fill="#3a2a00"/>`,
+  towel:`<rect x="-9" y="-6" width="18" height="12" rx="2" fill="#e6e6ff"/><path d="M-9,-2 h18 M-9,2 h18" stroke="#6ad8cf" stroke-width="1.6"/>`,
+  slipper:`<path d="M-10,3 q2,-8 10,-6 q5,1 8,-4 l2,1 q-1,8 -6,10 h-14z" fill="#e8f6ff" stroke="#fffdf0" stroke-width="1"/><path d="M-10,3 v4" stroke="#e8f6ff" stroke-width="2"/>`,
+  banana:`<path d="M-9,-3 q8,13 19,-4 q-8,6 -19,4z" fill="#eecb3a" stroke="#8a6d00" stroke-width="1"/><path d="M10,-7 l1.5,-2" stroke="#5a4500" stroke-width="2"/>`,
+  remote:`<rect x="-5" y="-11" width="10" height="22" rx="2.5" fill="#2a2a2a"/><circle cx="0" cy="-7" r="1.6" fill="#e63946"/><path d="M-2.5,-2 h1.6 M1,-2 h1.6 M-2.5,1.5 h1.6 M1,1.5 h1.6 M-2.5,5 h1.6 M1,5 h1.6" stroke="#bbb" stroke-width="1.4"/>`,
+  shake:`<path d="M-6,-6 h12 l-2,16 h-8z" fill="#ffb3c7" stroke="#8a3a52" stroke-width="1"/><path d="M-7,-6 q7,-7 14,0z" fill="#fff8ee"/><circle cx="0" cy="-10" r="1.8" fill="#d62828"/><path d="M3,-7 l4,-8" stroke="#d62828" stroke-width="1.5"/>`,
+  ring:`<ellipse rx="7" ry="5" fill="none" stroke="#e8b923" stroke-width="2.6"/><ellipse rx="7" ry="5" fill="none" stroke="#fff1b0" stroke-width=".8"/>`,
+  cube:`<rect x="-8" y="-8" width="16" height="16" fill="#111"/>${[0,1,2].map(r=>[0,1,2].map(c=>`<rect x="${-7.2+c*5}" y="${-7.2+r*5}" width="4.4" height="4.4" fill="${["#e63946","#ffd23f","#2a9d8f","#fff","#3a86ff","#fb5607"][(r*3+c*2)%6]}"/>`).join("")).join("")}`,
+  glasses:`<circle cx="-5.5" r="4.5" fill="#dff3ff" fill-opacity=".5" stroke="#111" stroke-width="1.8"/><circle cx="5.5" r="4.5" fill="#dff3ff" fill-opacity=".5" stroke="#111" stroke-width="1.8"/><path d="M-1,0 h2 M-10,-1 l-3,-2 M10,-1 l3,-2" stroke="#111" stroke-width="1.5"/>`,
+  sandbag:`<path d="M-8,7 q-2,-9 3,-12 h10 q5,3 3,12z" fill="#c9a66b" stroke="#6b4f24" stroke-width="1.2"/><path d="M-3,-5 l3,-4 l3,4" stroke="#6b4f24" stroke-width="1.2" fill="none"/>`,
+  cane:`<path d="M0,12 v-17 q0,-5 5,-5 q5,0 5,4" fill="none" stroke="#c8a165" stroke-width="2.4"/>`,
+  tripod:`<ellipse cy="-6" rx="7" ry="4" fill="#8a9aa8" stroke="#3a4a58"/><circle cy="-6" r="1.6" fill="#e63946"/><path d="M0,-3 l-7,12 M0,-3 l0,12 M0,-3 l7,12" stroke="#3a4a58" stroke-width="1.5"/>`,
+  martini:`<path d="M-8,-8 h16 l-8,9z" fill="#dff3ff" stroke="#7a8aa0"/><path d="M0,1 v7 M-4,8 h8" stroke="#dff3ff" stroke-width="1.6"/><circle cx="1" cy="-5" r="2" fill="#6a994e"/>`,
+  ball:`<circle r="4.2" fill="#d9d9e3" stroke="#777"/><circle cx="-1.3" cy="-1.3" r="1.2" fill="#fff"/>`,
+  sticker:`<rect x="-6" y="-8" width="12" height="16" rx="1" fill="#fff" stroke="#333"/><rect x="-4.5" y="-6.5" width="9" height="9" fill="#e63946"/><circle cy="-2" r="2.2" fill="#ffd166"/><path d="M-4,5 h8" stroke="#333"/>`,
+  squid:`<path d="M-6,-2 q6,-14 12,0z" fill="#e76f51"/><path d="M-5,-2 q-2,7 -4,9 M-2,-2 q0,7 -1,10 M2,-2 q1,7 2,10 M5,-2 q3,6 5,8" stroke="#e76f51" stroke-width="1.8" fill="none"/><circle cx="-2" cy="-4" r="1" fill="#fff"/><circle cx="2" cy="-4" r="1" fill="#fff"/>`,
+  watch:`<circle r="7.5" fill="#e9c46a" stroke="#8a6d1e" stroke-width="1.5"/><circle r="5.5" fill="#fffbe8"/><path d="M0,0 v-4 M0,0 l3,1.6" stroke="#333" stroke-width="1.1"/><rect x="-1.6" y="-11" width="3.2" height="3.5" fill="#8a6d1e"/>`,
+  lens:`<circle cx="-2" cy="-2" r="6" fill="#dff3ff" fill-opacity=".6" stroke="#8a6d1e" stroke-width="2"/><path d="M2.5,2.5 l6,6" stroke="#5c3b1e" stroke-width="3" stroke-linecap="round"/>`,
+  earpiece:`<rect x="-3" y="-8" width="6" height="15" rx="2" fill="#1b1b1b"/><ellipse cy="-8" rx="5" ry="2.5" fill="#333" stroke="#111"/><path d="M0,7 q4,4 8,2" stroke="#6b4a2b" stroke-width="1.2" fill="none"/>`,
+  needle:`<path d="M0,-11 l2.5,4 v14 h-5 v-14z" fill="#e8f6ff" stroke="#7aa0c0" stroke-width="1"/><path d="M-4,7 h8" stroke="#c8962e" stroke-width="2.5"/>`,
+  rocket:`<path d="M-8,-4 h9 q8,0 11,4 q-3,4 -11,4 h-9z" fill="#c9c9d6" stroke="#555" stroke-width="1"/><path d="M-8,-4 l-4,-3 v14 l4,-3z" fill="#e63946" stroke="#7a1d25" stroke-width=".8"/><path d="M-2,-4 v8 M4,-4 v8" stroke="#8a8a9a" stroke-width="1"/>`,
+  telegram:`<rect x="-9" y="-7" width="18" height="14" fill="#f3e6c4" stroke="#6b4a2b"/><rect x="-9" y="-7" width="18" height="3" fill="#9b2d20"/><path d="M-6,-1 h12 M-6,2 h12 M-6,5 h8" stroke="#6b4a2b" stroke-width="1"/>`,
+  envelope:`<rect x="-10" y="-7" width="20" height="14" fill="#b5171e" stroke="#7a0010"/><path d="M-10,-7 L0,1 L10,-7" fill="none" stroke="#7a0010" stroke-width="1.2"/>`
+};
+const item=(key,x,y,s,rot)=>`<g class="item hidden" transform="translate(${x} ${y})"><circle r="10" fill="transparent"/><g transform="rotate(${rot||0}) scale(${s})">${ITEMS[key]}</g></g>`;
+
+// monoscopio (immagine del puzzle scorrevole, 300x300)
+const TESTCARD=(()=>{let s=`<rect width="300" height="300" fill="#7d7d7d"/>`;
+  for(let i=1;i<10;i++)s+=`<path d="M${i*30},0 v300 M0,${i*30} h300" stroke="#a8a8a8" stroke-width="2"/>`;
+  const bars=["#ffffff","#ffe600","#00e0e0","#00d000","#e000e0","#e00000","#1030e0"];
+  bars.forEach((c,i)=>s+=`<rect x="${i*300/7}" y="95" width="${300/7+.5}" height="110" fill="${c}"/>`);
+  for(let i=0;i<10;i++)s+=`<rect x="${i*30}" y="215" width="30" height="40" fill="${i%2?'#fff':'#111'}"/>`;
+  s+=`<rect x="100" y="20" width="100" height="55" fill="#111"/><text x="150" y="58" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="30" fill="#fff">MUSEO</text>`;
+  s+=`<circle cx="150" cy="150" r="128" fill="none" stroke="#fff" stroke-width="7"/><path d="M150,22 v256 M22,150 h256" stroke="#fff" stroke-width="3"/>`;
+  s+=`<path d="M0,0 l40,0 l-40,40z M300,0 l-40,0 l40,40z M0,300 l40,0 l-40,-40z M300,300 l-40,0 l40,-40z" fill="#e00000"/>`;
+  s+=`<text x="150" y="288" text-anchor="middle" font-family="Georgia" font-size="18" fill="#fff">BUONANOTTE</text>`;return s})();
+
+// ================= sale =================
+const rooms=[
+{ name:"Sala giochi, 1980",letter:"M",value:30,coins:[[18,24],[386,206]],
+  puzzle:{type:"lock",riddle:"Il gettone d'oro è chiuso in un lucchetto a quattro cifre. Le regole per calcolare la combinazione sono scritte sugli schermi dei cabinati.",
+    dials:[[..."0123456789"],[..."0123456789"],[..."0123456789"],[..."0123456789"]],answer:["3","0","1","5"],
+    hints:["Ogni schermo contiene una regola: toccali tutti. Contano solo i pulsanti tondi sui pannelli.","Primo cabinato: due gialli valgono 4, un rosa toglie 1. La prima cifra è 3."]},
+  relic:{key:"pixel",name:"Il puntino grigio",seek:"Cerca il pixel più famoso della storia dei videogiochi. È minuscolo, e qualcuno ci ha appoggiato sopra qualcosa.",
+    ref:"In Adventure per Atari 2600 un minuscolo punto grigio apriva la stanza segreta con il nome del programmatore Warren Robinett: è considerato uno dei primi easter egg dei videogiochi.",where:"È sotto il cestino dei rifiuti: trascinalo via."},
+  draw(){const r=rng(7);let carpet="";const cols=["#1fc8b4","#7b5cff","#e8e3ff"];
+    for(let i=0;i<80;i++){const x=r()*400,y=215+r()*82,c=cols[i%3],t=i%3;
+      carpet+=t===0?`<circle cx="${x}" cy="${y}" r="3.2" fill="${c}"/>`:t===1?`<path d="M${x},${y-4} l4,7 h-8z" fill="${c}"/>`:`<path d="M${x-5},${y} q2.5,-4 5,0 t5,0" stroke="${c}" stroke-width="2" fill="none"/>`}
+    const P="#ff3fa4",Y="#ffd23f";
+    const cab=(x,sc,mk,btns,msg)=>`<g transform="translate(${x} 58)"><path d="M0,0 h82 l-6,30 v130 h-70 v-130z" fill="#2e1f66" stroke="#0d0822" stroke-width="3"/>
+      <rect x="4" y="-10" width="74" height="16" rx="3" fill="${mk}"/>${clue(msg,`<rect x="12" y="38" width="58" height="48" rx="4" fill="${sc}"/>`)}
+      <path d="M8,98 h66 l6,16 h-78z" fill="#4a35a0"/><rect x="15" y="92" width="3" height="12" fill="#ddd"/><circle cx="16.5" cy="92" r="4" fill="#ddd"/>
+      ${btns.map((b,i)=>`<circle cx="${32+i*12}" cy="106" r="4" fill="${b}"/>`).join("")}<rect x="28" y="130" width="24" height="10" rx="2" fill="#0d0822"/></g>`;
+    return `<rect width="400" height="300" fill="#1a1033"/><rect y="210" width="400" height="90" fill="#2b1650"/>${carpet}
+      <text x="200" y="36" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="22" fill="none" stroke="#ff3fa4" stroke-width="1.6">GIOCA ANCORA</text>
+      ${cab(12,"#1fc8b4","#1fc8b4",[P,Y,Y],"Lo schermo lampeggia: UN CABINATO, UNA CIFRA.")}${cab(110,"#7b5cff","#7b5cff",[P,P,Y],"Lo schermo recita: OGNI PULSANTE GIALLO VALE DOPPIO.")}
+      ${cab(208,"#1fc8b4","#7b5cff",[Y,P],"Lo schermo recita: OGNI PULSANTE ROSA RUBA UN PUNTO.")}${cab(306,"#7b5cff","#1fc8b4",[P,Y,Y,Y],"Lo schermo recita: LEGGI COME UN LIBRO. Il joystick non è un pulsante.")}
+      ${item("pixel",334,262,1)}
+      ${mov(`<path d="M318,236 h34 l-4,48 h-26z" fill="#6c757d" stroke="#222" stroke-width="2.5"/><rect x="314" y="230" width="42" height="8" rx="2" fill="#adb5bd" stroke="#222" stroke-width="2"/><path d="M328,244 v32 M336,244 v32 M344,244 v32" stroke="#495057" stroke-width="2"/>`)}
+      ${mov(`<path d="M60,280 l14,-44 h6 l14,44z" fill="#ff9f1c" stroke="#222" stroke-width="2"/><path d="M68,262 h20" stroke="#fff" stroke-width="5"/><rect x="54" y="278" width="46" height="6" fill="#222"/>`)}
+      ${mov(`<path d="M186,250 h40 l-4,30 h-32z" fill="#c9a227" stroke="#222" stroke-width="2"/><ellipse cx="206" cy="250" rx="20" ry="5" fill="#ffe08a" stroke="#222" stroke-width="1.5"/>`)}`;}},
+
+{ name:"Videoteca, 1994",letter:"O",value:35,coins:[[362,236],[30,222]],
+  puzzle:{type:"choice",riddle:"Qualcuno ha restituito una cassetta senza riavvolgerla. Anna: «È stato Bruno oppure Dario.» Bruno: «Io non c'entro.» Carla: «Anna mente.» Dario: «È stata Carla.» Il commesso giura che uno solo di loro dice la verità. Chi è il colpevole? Hai diritto a un'accusa alla volta.",
+    options:["Anna","Bruno","Carla","Dario"],cols:2,answer:"Bruno",
+    hints:["Supponi, a turno, che il colpevole sia ciascuno dei quattro, e conta quante frasi risultano vere.","Se il colpevole fosse Anna, Bruno e Carla direbbero entrambi il vero: quindi non è Anna."]},
+  relic:{key:"vhs",name:"La videocassetta senza etichetta",seek:"Una cassetta senza titolo è stata nascosta in fretta, lontano dagli scaffali. Qualcosa sul bancone la copre.",
+    ref:"In The Ring (Ringu, 1998) una videocassetta anonima porta con sé una telefonata e una scadenza di sette giorni.",where:"È sotto lo scatolone sul bancone: spostalo."},
+  draw(){const r=rng(21),cols=["#e63946","#f4a261","#2a9d8f","#264653","#e9c46a","#8338ec","#fb5607"];let shelves="";
+    [44,114].forEach(y=>{shelves+=`<rect x="20" y="${y+42}" width="360" height="8" fill="#7a4a24"/>`;let x=26;
+      while(x<370){const w=11+Math.round(r()*3),h=36+Math.round(r()*6);
+        shelves+=`<rect x="${x}" y="${y+42-h}" width="${w}" height="${h}" fill="${cols[Math.floor(r()*7)]}" stroke="#1b1b1b"/><rect x="${x+2}" y="${y+48-h}" width="${w-4}" height="8" fill="#fff" opacity=".85"/>`;x+=w+1}});
+    return `<rect width="400" height="300" fill="#f7e3b8"/><rect x="14" y="20" width="372" height="150" fill="#a0672f"/><rect x="20" y="26" width="360" height="138" fill="#5c3514"/>${shelves}
+      <rect y="232" width="400" height="68" fill="#d9b27c"/>
+      ${clue("Il commesso borbotta: «Uno solo di quei quattro è sincero, ci scommetto la tessera.»",`<rect x="40" y="214" width="220" height="60" fill="#e63946" stroke="#1b1b1b" stroke-width="3"/><rect x="40" y="214" width="220" height="12" fill="#1b1b1b"/><text x="150" y="256" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="18" fill="#f7e3b8">NOLEGGIO</text>`)}
+      ${clue("Il videoregistratore mostra il contatore fermo a metà nastro.",`<rect x="270" y="252" width="60" height="18" rx="3" fill="#222"/><circle cx="318" cy="261" r="3" fill="#2a9d8f"/>`)}
+      ${item("vhs",120,205,0.95)}
+      ${mov(`<rect x="94" y="180" width="54" height="34" fill="#c8955c" stroke="#5c3514" stroke-width="2.5"/><path d="M94,188 h54 M121,180 v8" stroke="#5c3514" stroke-width="2"/><text x="121" y="206" text-anchor="middle" font-family="Georgia" font-size="8" fill="#5c3514">RESI</text>`)}
+      ${mov(`<rect x="190" y="194" width="16" height="20" fill="#2a9d8f" stroke="#1b1b1b"/><rect x="207" y="196" width="16" height="18" fill="#e9c46a" stroke="#1b1b1b"/><rect x="198" y="176" width="16" height="18" fill="#8338ec" stroke="#1b1b1b"/>`)}
+      ${mov(`<g transform="translate(340 214)"><path d="M0,0 h40 l-6,56 h-28z" fill="#fff" stroke="#1b1b1b" stroke-width="2.5"/><path d="M10,0 l2,56 M20,0 v56 M30,0 l-2,56" stroke="#e63946" stroke-width="5"/></g>`)}`;}},
+
+{ name:"Discoteca, 1977",letter:"T",value:40,coins:[[200,20],[200,130]],
+  puzzle:{type:"seq",riddle:"Il DJ fa partire la musica solo se accendi quattro piastrelle di colori tutti diversi, nell'ordine giusto. Il blu viene subito dopo il giallo. Il rosa non è né il primo né l'ultimo. L'arancione non apre la sequenza. Un colore stasera è bandito dalla pista.",
+    answer:["giallo","blu","rosa","arancione"],hints:["Il colore bandito è scritto sul mixer. Chi può essere il primo, se il blu deve seguire il giallo?","La sequenza comincia con giallo e blu."]},
+  relic:{key:"record",name:"Il disco d'oro",seek:"Cerca il premio che spetta ai dischi che vendono moltissimo. È caduto dietro a qualcosa di molto rumoroso.",
+    ref:"La colonna sonora de La febbre del sabato sera (1977) è tra le più vendute della storia e ha trasformato la pista illuminata in un'icona.",where:"È dietro la cassa acustica di sinistra: trascinala."},
+  draw(){let floor="";const cols=[["#ff006e","rosa"],["#ffbe0b","giallo"],["#3a86ff","blu"],["#8338ec","viola"],["#fb5607","arancione"]];
+    for(let row=0;row<5;row++)for(let c=0;c<10;c++){const [hex,n]=cols[(row*3+c)%5];floor+=`<rect class="tile" data-c="${n}" x="${c*40}" y="${190+row*22}" width="40" height="22" fill="${hex}" stroke="#14052e" stroke-width="2"/>`}
+    let ball="";for(let i=-3;i<=3;i++)for(let j=-3;j<=3;j++)if(i*i+j*j<=10)ball+=`<rect x="${196+i*9}" y="${66+j*9}" width="8" height="8" fill="${(i+j)%2?'#e6e6f0':'#9aa0b8'}"/>`;
+    const spk=x=>mov(`<g transform="translate(${x} 92)"><rect width="56" height="96" fill="#2a1a4a" stroke="#000" stroke-width="3"/><circle cx="28" cy="30" r="14" fill="#111" stroke="#666" stroke-width="3"/><circle cx="28" cy="70" r="18" fill="#111" stroke="#666" stroke-width="3"/></g>`);
+    return `<rect width="400" height="300" fill="#14052e"/><path d="M200,0 v38" stroke="#aaa" stroke-width="2"/>${ball}
+      ${clue("Un foglietto sul mixer: «Niente viola stasera: porta sfortuna agli attori.»",`<rect x="150" y="140" width="100" height="34" rx="4" fill="#3a2a60" stroke="#000" stroke-width="2"/><circle cx="175" cy="157" r="9" fill="#111" stroke="#888"/><circle cx="225" cy="157" r="9" fill="#111" stroke="#888"/>`)}
+      ${floor}${item("record",48,160,0.9)}${spk(20)}${spk(324)}`;}},
+
+{ name:"Cameretta, 1997",letter:"F",value:45,coins:[[370,196],[200,290]],
+  puzzle:{type:"nonogram",target:[".###.","#####","#.#.#","#####","##.##"],riddle:"Sul quaderno a quadretti c'è un disegno da completare. I numeri dicono quanti quadretti pieni consecutivi ci sono in ogni riga e in ogni colonna. Annerisci i quadretti giusti per scoprire cosa manca alla console.",
+    hints:["Parti dalle righe con il 5: sono piene del tutto.","Le colonne ai lati hanno un blocco da 4 che parte dalla seconda riga: nella prima riga sono pieni solo i tre quadretti centrali."]},
+  relic:{key:"floppy",name:"Il floppy disk",seek:"Cerca un oggetto sparito dalle scrivanie ma che vedi ancora ogni volta che premi Salva. Qualcuno ci ha dormito sopra.",
+    ref:"Il dischetto da 3,5 pollici conteneva appena 1,44 MB, ma sopravvive in tanti programmi come icona del comando Salva.",where:"È sotto il cuscino del letto: spostalo."},
+  draw(){let wall="";const r=rng(3);
+    for(let i=0;i<36;i++){const x=r()*400,y=r()*170;wall+=i%2?`<path d="M${x},${y} l6,-6 l6,6" stroke="#ff7a59" stroke-width="2.4" fill="none"/>`:`<circle cx="${x}" cy="${y}" r="2.6" fill="#fffbe8"/>`}
+    return `<rect width="400" height="300" fill="#7fd1c7"/>${wall}<rect y="200" width="400" height="100" fill="#3d348b"/>
+      ${clue("Sul poster, a pennarello: «Soffiare prima di giocare!»",`<g transform="translate(40 30)"><rect width="70" height="92" fill="#fffbe8" stroke="#222" stroke-width="3"/><circle cx="35" cy="40" r="22" fill="#ff7a59"/></g>`)}
+      <g transform="translate(250 22) rotate(4)"><rect width="62" height="80" fill="#ffd166" stroke="#222" stroke-width="3"/><path d="M10,62 l14,-30 l12,20 l8,-10 l10,20z" fill="#3d348b"/></g>
+      <rect x="130" y="150" width="140" height="10" fill="#8c5a3c"/><rect x="138" y="160" width="8" height="70" fill="#8c5a3c"/><rect x="254" y="160" width="8" height="70" fill="#8c5a3c"/>
+      ${clue("La TV dice: NESSUN GIOCO INSERITO.",`<rect x="150" y="84" width="100" height="68" rx="10" fill="#c9c3b8" stroke="#222" stroke-width="3"/><rect x="160" y="92" width="80" height="50" rx="8" fill="#2b2d42"/><text x="200" y="121" text-anchor="middle" font-family="Georgia" font-size="10" fill="#06d6a0">NO GAME</text>`)}
+      ${clue("La console ha una fessura vuota in cima.",`<rect x="160" y="168" width="80" height="22" rx="4" fill="#555" stroke="#222" stroke-width="2"/><rect x="180" y="168" width="40" height="5" fill="#222"/>`)}
+      <rect x="310" y="178" width="70" height="52" fill="#8c5a3c" stroke="#222" stroke-width="3"/>
+      <g transform="translate(330 96)"><path d="M6,82 h20 l-4,-10 h-12z" fill="#555"/><path d="M2,72 l6,-60 h16 l6,60z" fill="#ff7a59" stroke="#222" stroke-width="2.5"/><ellipse cx="16" cy="58" rx="7" ry="9" fill="#ffd166"/></g>
+      <rect x="0" y="232" width="120" height="68" fill="#ef476f" stroke="#222" stroke-width="3"/>
+      ${clue("Nel diario: «Ho disegnato sul quaderno la cosa che mi manca di più. I numeri li ho scritti io.»",`<rect x="62" y="240" width="30" height="22" rx="2" fill="#fffbe8" stroke="#222" stroke-width="2" transform="rotate(-8 77 251)"/><path d="M68,248 h18 M68,254 h14" stroke="#3d348b" stroke-width="1.5"/>`)}
+      ${item("floppy",28,228,0.8)}
+      ${mov(`<rect x="4" y="216" width="48" height="24" rx="8" fill="#fffbe8" stroke="#222" stroke-width="2.5"/>`)}
+      ${mov(`<path d="M250,280 q10,-26 34,-22 q18,-10 30,6 q14,4 10,16z" fill="#06d6a0" stroke="#222" stroke-width="2"/><path d="M262,272 q20,-6 40,0" stroke="#049f76" stroke-width="3" fill="none"/>`)}
+      ${mov(`<rect x="150" y="262" width="40" height="26" rx="3" fill="#ffd166" stroke="#222" stroke-width="2"/><rect x="156" y="268" width="28" height="8" fill="#222"/>`)}`;}},
+
+{ name:"Drive-in, 1955",letter:"E",value:50,coins:[[170,190],[390,290]],
+  puzzle:{type:"lock",riddle:"Stasera il drive-in proietta tre film di fila. Il programma è sul cartellone e la radio annuncia quando parte l'ultimo. Imposta sull'orologio l'ora d'inizio del primo film.",
+    dials:[Array.from({length:24},(_,i)=>String(i).padStart(2,"0")),Array.from({length:12},(_,i)=>String(i*5).padStart(2,"0"))],labels:["ore","minuti"],answer:["20","00"],
+    hints:["L'ultimo film parte a mezzanotte: torna indietro sottraendo film e pause, dal fondo verso l'inizio.","Il secondo film inizia alle 21:50."]},
+  relic:{key:"slipper",name:"La scarpetta di cristallo",seek:"A mezzanotte, in una fiaba famosa, qualcuno perde una scarpa scappando dal ballo. Alza gli occhi al cielo: stanotte è un po' nuvoloso.",
+    ref:"Allo scoccare della mezzanotte l'incantesimo di Cenerentola si spezza: il film Disney è del 1950, proprio l'epoca d'oro dei drive-in.",where:"È sulla luna, coperta da una nuvola: trascinala via."},
+  draw(){const r=rng(55);let stars="";for(let i=0;i<50;i++)stars+=`<circle cx="${r()*400}" cy="${r()*90}" r="${r()+.4}" fill="#fff"/>`;
+    const car=(x,col)=>`<g transform="translate(${x} 228)"><path d="M0,30 v-14 q4,-4 16,-6 l12,-12 h34 l14,12 q14,2 18,6 v14z" fill="${col}" stroke="#0b1022" stroke-width="2"/><circle cx="20" cy="32" r="8" fill="#0b1022"/><circle cx="76" cy="32" r="8" fill="#0b1022"/><rect x="0" y="18" width="5" height="5" fill="#ff4d4d"/></g>`;
+    const cloud=(x,y)=>mov(`<g transform="translate(${x} ${y})"><circle cx="0" cy="0" r="16" fill="#5b6b8c"/><circle cx="18" cy="-6" r="20" fill="#65779b"/><circle cx="38" cy="2" r="15" fill="#5b6b8c"/><rect x="-6" y="0" width="50" height="14" rx="7" fill="#5b6b8c"/></g>`);
+    return `<rect width="400" height="300" fill="#0b1d3a"/>${stars}<circle cx="344" cy="46" r="24" fill="#f4f1c9"/><circle cx="336" cy="40" r="4" fill="#dcd7a8"/><circle cx="354" cy="58" r="3" fill="#dcd7a8"/>
+      ${item("slipper",346,48,0.6,-6)}
+      <rect x="60" y="30" width="220" height="130" fill="#e9e4d8" stroke="#3a3a3a" stroke-width="5"/><rect x="72" y="42" width="196" height="106" fill="#a8c5da"/><path d="M72,148 l50,-50 l40,30 l40,-45 l66,65z" fill="#5a7d94"/>
+      <rect x="160" y="160" width="20" height="40" fill="#3a3a3a"/><rect y="200" width="400" height="100" fill="#2c3448"/>
+      ${clue("Programma: 1° film di 95 minuti, poi una pausa di un quarto d'ora. 2° film di un'ora e cinquanta, poi una pausa di 20 minuti. Infine il 3° film.",`<g transform="translate(296 118)"><rect width="96" height="46" rx="4" fill="#c1121f" stroke="#fdf0d5" stroke-width="3"/><text x="48" y="19" text-anchor="middle" font-family="Georgia" font-size="8" fill="#fdf0d5">STASERA</text><text x="48" y="36" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="11" fill="#fdf0d5">3 FILM</text></g><rect x="340" y="164" width="6" height="40" fill="#fdf0d5"/>`)}
+      ${car(20,"#e76f51")}${car(140,"#2a9d8f")}${car(262,"#e9c46a")}
+      ${clue("Dalla radio di un'auto: «L'ultimo film comincia quando le due lancette si incontrano in cima al quadrante, a notte fonda.»",`<rect x="232" y="236" width="10" height="16" fill="#555"/><rect x="229" y="232" width="16" height="6" fill="#888"/>`)}
+      ${cloud(326,44)}${cloud(40,20)}${cloud(250,70)}`;}},
+
+{ name:"Negozio di dischi, 1967",letter:"A",value:55,coins:[[386,22],[200,112]],
+  puzzle:{type:"choice",riddle:"Il juke-box suona una sola selezione, da A1 a C6. Le condizioni per trovarla sono sparse per il negozio. Ogni selezione sbagliata ti costa punti.",
+    options:["A1","A2","A3","A4","A5","A6","B1","B2","B3","B4","B5","B6","C1","C2","C3","C4","C5","C6"],cols:6,answer:"C5",
+    hints:["Le condizioni sono tre biglietti: sotto i pulsanti del juke-box, sulla cassa dei dischi e sul registratore di cassa.","Con le prime due condizioni restano B1, B3, B5, C1, C3 e C5. B vale 2: sommato a un dispari dà dispari."]},
+  relic:{key:"banana",name:"La banana",seek:"Cerca il frutto più famoso della storia delle copertine. Si nasconde dietro uno dei vinili appesi al muro.",
+    ref:"La copertina di The Velvet Underground & Nico (1967) fu firmata da Andy Warhol e diventò un simbolo della pop art.",where:"Dietro l'ultimo vinile a destra, nella fila in basso."},
+  draw(){let vin="",back="";const labels=["#e63946","#f4a261","#2a9d8f","#ffd23f","#8338ec","#ff3fa4"];
+    for(let row=0;row<2;row++)for(let c=0;c<6;c++){const x=c<3?30+c*44:250+(c-3)*44,y=40+row*60;
+      const v=`<circle cx="${x+18}" cy="${y+18}" r="19" fill="#111"/><circle cx="${x+18}" cy="${y+18}" r="12" fill="none" stroke="#333"/><circle cx="${x+18}" cy="${y+18}" r="7" fill="${labels[(row*2+c)%6]}"/>`;
+      vin+=row===1?mov(v):v; back+=row===1?`<circle cx="${x+18}" cy="${y+18}" r="3" fill="#b0894f"/>`:""}
+    return `<rect width="400" height="300" fill="#f2cc8f"/><rect width="400" height="10" fill="#81b29a"/>${back}${item("banana",356,118,0.6,0)}${vin}
+      <rect y="220" width="400" height="80" fill="#3d405b"/><path d="M0,220 h400" stroke="#e07a5f" stroke-width="6"/>
+      <path d="M150,260 v-130 a50,50 0 0,1 100,0 v130z" fill="#e07a5f" stroke="#3d2b1f" stroke-width="3"/><path d="M160,250 v-118 a40,40 0 0,1 80,0 v118z" fill="#ffd23f"/>
+      ${clue("Sotto i pulsanti: «Il numero è dispari. La lettera non è la prima dell'alfabeto.»",`<rect x="165" y="150" width="70" height="42" rx="3" fill="#fff4d6" stroke="#3d2b1f"/><path d="M172,162 h56 M172,172 h56 M172,182 h56" stroke="#3d2b1f" stroke-dasharray="4 3"/>`)}
+      <rect x="170" y="200" width="60" height="40" rx="4" fill="#3d2b1f"/><path d="M176,210 h48 M176,220 h48 M176,230 h48" stroke="#e07a5f" stroke-width="3"/>
+      ${clue("Sulla cassa dei dischi: «Se la lettera è C, il numero è maggiore di 4.»",`<rect x="290" y="232" width="90" height="46" fill="#8d5b3a" stroke="#3d2b1f" stroke-width="3"/><rect x="298" y="220" width="8" height="30" fill="#e63946"/><rect x="310" y="222" width="8" height="30" fill="#2a9d8f"/>`)}
+      ${clue("Sul registratore di cassa: «La posizione della lettera nell'alfabeto più il numero dà un risultato pari.»",`<rect x="18" y="236" width="56" height="36" rx="3" fill="#81b29a" stroke="#3d2b1f" stroke-width="2.5"/><rect x="26" y="226" width="40" height="12" fill="#3d2b1f"/><rect x="30" y="228" width="32" height="7" fill="#b5e3c9"/>`)}`;}},
+
+{ name:"Ponte di comando, anno ignoto",letter:"O",value:60,coins:[[50,256],[200,292]],
+  puzzle:{type:"pipes",riddle:"Il reattore è acceso ma l'energia non arriva ai motori. Ruota le sezioni del condotto finché il flusso non attraversa la griglia dall'ingresso all'uscita. Tocca una sezione per ruotarla.",
+    grid:[[["I",0],["L",1],["T",3],["L",2]],[["L",3],["I",1],["I",0],["T",2]],[["I",0],["L",2],["I",0],["I",2]],[["L",1],["T",1],["L",0],["I",1]]],
+    from:0,to:2,inLabel:"reattore ▶",outLabel:"▶ motori",hints:["Il percorso più corto scende lungo la seconda colonna.","Dall'ingresso: dritto a destra, poi curva verso il basso, giù per due caselle, curva a destra e dritto fino all'uscita."]},
+  relic:{key:"towel",name:"L'asciugamano",seek:"Ogni autostoppista galattico sa sempre dove si trova il proprio. Sul ponte c'è un vano di manutenzione.",
+    ref:"Nella Guida galattica per autostoppisti di Douglas Adams l'asciugamano è l'oggetto più utile dell'universo, e 42 è la risposta alla domanda fondamentale sulla vita, l'universo e tutto quanto.",where:"Apri lo sportello di manutenzione in basso a destra toccandolo."},
+  draw(){const r=rng(99);let stars="";for(let i=0;i<90;i++)stars+=`<circle cx="${40+r()*320}" cy="${14+r()*140}" r="${r()*1.4+.4}" fill="#fff" opacity="${.5+r()*.5}"/>`;
+    let lights="";const c=["#00f5d4","#f15bb5","#fee440","#00bbf9"];for(let i=0;i<22;i++)lights+=`<rect x="${34+i*15}" y="${206+(i%2)*8}" width="9" height="5" rx="2" fill="${c[i%4]}"/>`;
+    return `<rect width="400" height="300" fill="#2b2e4a"/><path d="M30,10 h340 l-10,160 h-320z" fill="#050716" stroke="#9aa4c8" stroke-width="6"/>${stars}
+      <circle cx="110" cy="100" r="34" fill="#f15bb5"/><ellipse cx="110" cy="100" rx="56" ry="10" fill="none" stroke="#fee440" stroke-width="3" transform="rotate(-14 110 100)"/>
+      <circle cx="252" cy="120" r="14" fill="#00bbf9"/><path d="M200,10 v160" stroke="#9aa4c8" stroke-width="5"/>
+      <path d="M0,200 h400 v100 h-400z" fill="#3c4170"/><path d="M20,200 l20,-14 h320 l20,14z" fill="#9aa4c8"/>${lights}
+      ${clue("Il pannello ripete: ENERGIA AI MOTORI 0%. CONDOTTO INTERROTTO.",`<rect x="100" y="232" width="170" height="44" rx="6" fill="#1b1d33"/><text x="185" y="260" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="14" fill="#f15bb5">MOTORI 0%</text>`)}
+      <circle cx="50" cy="256" r="14" fill="#f15bb5" stroke="#1b1d33" stroke-width="4"/>
+      <rect x="306" y="234" width="72" height="54" fill="#12142a"/>${item("towel",342,262,0.9)}
+      ${tog(`<rect x="306" y="234" width="72" height="54" fill="#6b739e" stroke="#1b1d33" stroke-width="3"/><circle cx="312" cy="240" r="2" fill="#1b1d33"/><circle cx="372" cy="240" r="2" fill="#1b1d33"/><circle cx="312" cy="282" r="2" fill="#1b1d33"/><circle cx="372" cy="282" r="2" fill="#1b1d33"/><path d="M322,262 h40" stroke="#1b1d33" stroke-width="3"/>`,
+            `<path d="M306,234 l-20,-10 v54 l20,10z" fill="#6b739e" stroke="#1b1d33" stroke-width="2"/>`)}
+      ${mov(`<rect x="10" y="226" width="30" height="30" fill="#8d6e3a" stroke="#222" stroke-width="2"/><path d="M10,226 l30,30 M40,226 l-30,30" stroke="#5c4520" stroke-width="2"/>`)}`;}},
+
+{ name:"Salotto, 1986",letter:"R",value:65,coins:[[30,40],[372,284]],
+  puzzle:{type:"slide",riddle:"Il segnale è saltato e il monoscopio della buonanotte è tutto a pezzi. Ricomponi l'immagine facendo scorrere i riquadri nello spazio vuoto. Il modello è sul televisore.",
+    hints:["Sistema prima la riga in alto, poi quella in mezzo: l'ultima si risolve quasi da sola.","L'angolo con la scritta MUSEO va al centro della prima riga."]},
+  relic:{key:"remote",name:"Il telecomando",seek:"L'oggetto più conteso di ogni salotto, che sparisce sempre nello stesso posto. Tra i cuscini, naturalmente: ma quale?",
+    ref:"Il primo telecomando senza fili, il Flash-Matic, fu inventato nel 1955 da Eugene Polley. Da allora si perde nel divano.",where:"È sotto il cuscino centrale del divano."},
+  draw(){let paper="";for(let i=0;i<20;i++)paper+=`<rect x="${i*20}" y="0" width="10" height="200" fill="#d8b98a"/>`;
+    return `<rect width="400" height="300" fill="#c9a574"/>${paper}<rect y="200" width="400" height="100" fill="#6b4a2b"/>
+      <rect x="0" y="200" width="400" height="6" fill="#4a3220"/>
+      ${clue("La lampada a stelo getta una luce calda. Accanto, una guida TV aperta: «Fine delle trasmissioni: 00:30».",`<path d="M40,196 h20 l-4,-6 h-12z" fill="#333"/><rect x="48" y="80" width="4" height="112" fill="#333"/><path d="M30,80 h40 l-8,-30 h-24z" fill="#f4d58d" stroke="#333" stroke-width="2"/>`)}
+      <rect x="80" y="150" width="200" height="60" rx="10" fill="#8c2f39" stroke="#3a1015" stroke-width="3"/><rect x="72" y="160" width="20" height="60" rx="8" fill="#7a2530" stroke="#3a1015" stroke-width="3"/><rect x="268" y="160" width="20" height="60" rx="8" fill="#7a2530" stroke="#3a1015" stroke-width="3"/>
+      <rect x="90" y="190" width="180" height="30" rx="6" fill="#a13a45" stroke="#3a1015" stroke-width="2"/>
+      ${item("remote",180,196,0.8,80)}
+      ${mov(`<rect x="94" y="180" width="58" height="26" rx="8" fill="#c05560" stroke="#3a1015" stroke-width="2.5"/>`)}
+      ${mov(`<rect x="151" y="180" width="58" height="26" rx="8" fill="#c05560" stroke="#3a1015" stroke-width="2.5"/>`)}
+      ${mov(`<rect x="208" y="180" width="58" height="26" rx="8" fill="#c05560" stroke="#3a1015" stroke-width="2.5"/>`)}
+      ${clue("Sul televisore resta l'immagine di prova: è il modello da ricomporre.",`<rect x="300" y="120" width="86" height="80" rx="4" fill="#5c3b1e" stroke="#2a1a0c" stroke-width="3"/><rect x="306" y="126" width="62" height="56" rx="6" fill="#111"/><svg x="309" y="128" width="56" height="52" viewBox="0 0 300 300" preserveAspectRatio="none">${TESTCARD}</svg><circle cx="377" cy="140" r="4" fill="#c9a574"/><circle cx="377" cy="156" r="4" fill="#c9a574"/>`)}
+      <rect x="296" y="200" width="94" height="40" fill="#5c3b1e" stroke="#2a1a0c" stroke-width="3"/>
+      <ellipse cx="190" cy="262" rx="90" ry="14" fill="#4a3220"/><rect x="120" y="240" width="140" height="12" rx="3" fill="#8d6e4a" stroke="#2a1a0c" stroke-width="2"/>
+      ${mov(`<rect x="200" y="226" width="30" height="16" fill="#e9c46a" stroke="#2a1a0c" stroke-width="2"/><path d="M204,232 h22 M204,236 h16" stroke="#2a1a0c"/>`)}`;}},
+
+{ name:"Tavola calda, 1958",letter:"I",value:70,coins:[[384,16],[20,286]],
+  puzzle:{type:"lights",riddle:"L'insegna al neon è accesa solo a metà. Ogni lampada che tocchi cambia stato insieme a quelle subito sopra, sotto, a sinistra e a destra. Riaccendile tutte.",
+    start:[0,2,4,7],hints:["Non conta l'ordine in cui tocchi: conta solo quali lampade tocchi, e toccarne una due volte è come non toccarla.","Bastano quattro tocchi: i due angoli in alto, il centro e la lampada in basso al centro."]},
+  relic:{key:"shake",name:"Il frullato da cinque dollari",seek:"Cerca la bevanda più cara della storia del cinema. È nascosta dietro qualcosa sul bancone.",
+    ref:"In Pulp Fiction (1994) un frullato da cinque dollari in una tavola calda in stile anni '50 diventa una delle scene più citate di Tarantino.",where:"È dietro il portatovaglioli, sul bancone."},
+  draw(){let floor="";for(let r=0;r<5;r++)for(let c=0;c<20;c++)if((r+c)%2)floor+=`<rect x="${c*20}" y="${220+r*20}" width="20" height="20" fill="#111"/>`;
+    const stool=x=>`<rect x="${x-3}" y="212" width="6" height="30" fill="#aaa"/><ellipse cx="${x}" cy="208" rx="16" ry="6" fill="#e63946" stroke="#222" stroke-width="2"/>`;
+    return `<rect width="400" height="300" fill="#7ec8c0"/><rect y="220" width="400" height="80" fill="#f5f0e1"/>${floor}
+      <rect x="40" y="20" width="320" height="60" rx="10" fill="#222" stroke="#e63946" stroke-width="4"/>
+      <text x="200" y="64" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="34" fill="#553344" stroke="#ff5fa2" stroke-width="1">TAVOLA CALDA</text>
+      ${clue("Il cuoco: «L'insegna è capricciosa: tocchi una lampada e si porta dietro le vicine.»",`<rect x="290" y="96" width="70" height="60" fill="#fff" stroke="#222" stroke-width="3"/><path d="M296,110 h58 M296,122 h58 M296,134 h40" stroke="#999"/>`)}
+      <rect x="20" y="150" width="360" height="14" fill="#c0c0c0" stroke="#666" stroke-width="2"/><rect x="30" y="164" width="340" height="56" fill="#e63946" stroke="#7a1d25" stroke-width="3"/><path d="M30,190 h340" stroke="#fff" stroke-width="4"/>
+      ${stool(70)}${stool(150)}${stool(230)}${stool(310)}
+      ${item("shake",112,138,0.9)}
+      ${mov(`<rect x="96" y="120" width="34" height="30" rx="3" fill="#d9d9d9" stroke="#555" stroke-width="2"/><rect x="102" y="116" width="22" height="6" fill="#fff" stroke="#999"/><path d="M100,136 h26" stroke="#999" stroke-width="2"/>`)}
+      ${mov(`<rect x="184" y="118" width="12" height="32" rx="4" fill="#d62828" stroke="#6a0f0f" stroke-width="2"/><rect x="186" y="110" width="8" height="10" fill="#fff"/>`)}
+      ${mov(`<path d="M232,150 v-22 q0,-8 10,-8 h8 q10,0 10,8 v22z" fill="#eaf4ff" stroke="#7a8aa0" stroke-width="2"/><rect x="236" y="112" width="20" height="6" fill="#c0c0c0"/>`)}
+      ${mov(`<path d="M20,150 l20,-40 h40 l-10,40z" fill="#fff4d6" stroke="#222" stroke-width="2"/><text x="44" y="138" font-family="Georgia" font-size="9" fill="#e63946">MENÙ</text>`)}`;}},
+
+{ name:"Biblioteca, 1955",letter:"U",value:75,coins:[[380,24],[210,284]],
+  puzzle:{type:"order",riddle:"Il bibliotecario è tornato e vuole questi cinque romanzi in ordine di prima pubblicazione, dal più antico al più recente. Tocca due volumi per scambiarli di posto, poi controlla.",
+    items:["1984","Frankenstein","Il Signore degli Anelli","Dracula","Il meraviglioso mago di Oz"],
+    answer:["Frankenstein","Dracula","Il meraviglioso mago di Oz","1984","Il Signore degli Anelli"],
+    hints:["Due libri sono dell'Ottocento, uno è uscito proprio nel 1900.","Il primo è Frankenstein, l'ultimo è Il Signore degli Anelli."]},
+  relic:{key:"ring",name:"L'anello",seek:"Un piccolo oggetto d'oro che tutti desiderano e nessuno dovrebbe tenere. Sulla scrivania qualcuno ha lasciato un libro aperto.",
+    ref:"Nel Signore degli Anelli di Tolkien l'Unico Anello è il centro di tutta la saga: il primo volume uscì nel 1954.",where:"È sotto il libro aperto sulla scrivania."},
+  draw(){const r=rng(33),cols=["#6d2e46","#2f4858","#86bbd8","#a26769","#33658a","#8d6346","#55828b"];let shelves="";
+    [30,90,150].forEach(y=>{shelves+=`<rect x="10" y="${y+46}" width="380" height="6" fill="#4a2e1a"/>`;let x=14;
+      while(x<384){const w=8+Math.round(r()*8),h=30+Math.round(r()*14);shelves+=`<rect x="${x}" y="${y+46-h}" width="${w}" height="${h}" fill="${cols[Math.floor(r()*7)]}" stroke="#1d120a"/>`;x+=w+1}});
+    return `<rect width="400" height="300" fill="#3b2415"/><rect x="6" y="20" width="388" height="186" fill="#2a1a0e"/>${shelves}
+      <rect y="206" width="400" height="94" fill="#6b4a2b"/>
+      <rect x="120" y="226" width="170" height="12" fill="#8d5b3a" stroke="#2a1a0c" stroke-width="2"/><rect x="130" y="238" width="10" height="56" fill="#8d5b3a"/><rect x="270" y="238" width="10" height="56" fill="#8d5b3a"/>
+      ${clue("Un biglietto del bibliotecario: «Dal più antico al più recente, per data di prima pubblicazione. Nessuna eccezione.»",`<rect x="236" y="214" width="24" height="12" fill="#fff4d6" stroke="#2a1a0c" transform="rotate(6 248 220)"/>`)}
+      ${item("ring",177,219,0.8)}
+      ${mov(`<rect x="148" y="206" width="58" height="26" rx="2" fill="#7a2e2e" stroke="#2a1a0c" stroke-width="1.5"/><rect x="151" y="207" width="25" height="22" fill="#fff8e6"/><rect x="178" y="207" width="25" height="22" fill="#fff8e6"/><path d="M155,213 h17 M155,218 h17 M155,223 h12 M182,213 h17 M182,218 h17 M182,223 h14" stroke="#9a8a70"/>`)}
+      ${mov(`<rect x="208" y="210" width="16" height="16" fill="#1d3557" stroke="#0a1a2a" stroke-width="1.5"/><rect x="206" y="206" width="20" height="5" fill="#457b9d"/>`)}
+      ${mov(`<circle cx="340" cy="232" r="22" fill="#457b9d" stroke="#1d3557" stroke-width="2.5"/><path d="M322,226 q18,8 36,-2 M324,242 q16,-8 32,4" stroke="#a8dadc" stroke-width="3" fill="none"/><rect x="336" y="254" width="8" height="18" fill="#6b4a2b"/><rect x="326" y="270" width="28" height="6" fill="#4a2e1a"/>`)}
+      ${clue("Una poltrona consumata. Sul bracciolo, inciso con un temperino: «Ogni storia ha un anno di nascita.»",`<rect x="20" y="220" width="80" height="60" rx="10" fill="#6d2e46" stroke="#2a0e1a" stroke-width="3"/><rect x="14" y="230" width="18" height="50" rx="6" fill="#5a2439"/><rect x="88" y="230" width="18" height="50" rx="6" fill="#5a2439"/>`)}`;}},
+
+{ name:"Garage, 1985",letter:"N",value:80,coins:[[20,20],[300,290]],
+  puzzle:{type:"lock",riddle:"Il meccanico ti presta la sua cassetta degli attrezzi solo se rispondi alla sua domanda: quanti cacciaviti servono per bilanciare due martelli? I suoi appunti sono appesi al muro. Imposta la risposta sul lucchetto della cassetta.",dials:[[..."0123456789"],[..."0123456789"]],answer:["1","0"],hints:["Leggi entrambi gli appunti e sostituisci il martello della prima nella seconda.","Una chiave inglese pesa quanto tre cacciaviti."]},
+  relic:{key:"cube",name:"Il cubo colorato",seek:"Cerca il rompicapo simbolo degli anni '80, con sei facce di colori diversi. Il meccanico lo tiene al sicuro tra i suoi attrezzi, e li ha pure coperti.",
+    ref:"Il cubo inventato da Ernő Rubik nel 1974 divenne una mania mondiale all'inizio degli anni '80.",where:"Sposta il telo verde sul banco, poi tocca il coperchio della cassetta per aprirla."},
+  draw(){let holes="";for(let y=30;y<150;y+=12)for(let x=30;x<370;x+=12)holes+=`<circle cx="${x}" cy="${y}" r="1.4" fill="#6b4a2b"/>`;
+    return `<rect width="400" height="300" fill="#556b6f"/><rect x="20" y="20" width="360" height="140" fill="#c49a6c" stroke="#5c3b1e" stroke-width="3"/>${holes}
+      <g stroke="#333" stroke-width="3"><path d="M60,40 v50" /><rect x="52" y="86" width="16" height="30" rx="3" fill="#d62828"/><path d="M100,40 l0,60 M92,40 h16" /><rect x="140" y="40" width="10" height="70" fill="#777"/><rect x="132" y="40" width="26" height="14" fill="#555"/></g>
+      ${clue("Primo appunto: «Un martello pesa quanto una chiave inglese più due cacciaviti.»",`<rect x="200" y="40" width="70" height="46" fill="#fffbe8" stroke="#333" stroke-width="2" transform="rotate(-3 235 63)"/><path d="M208,54 h52 M208,64 h52 M208,74 h36" stroke="#999"/>`)}
+      ${clue("Secondo appunto: «Due chiavi inglesi pesano quanto un martello più un cacciavite.»",`<rect x="290" y="60" width="70" height="46" fill="#fffbe8" stroke="#333" stroke-width="2" transform="rotate(4 325 83)"/><path d="M298,74 h52 M298,84 h52 M298,94 h36" stroke="#999"/>`)}
+      <rect y="160" width="400" height="140" fill="#3c4a4d"/><rect x="170" y="184" width="220" height="14" fill="#7a5230" stroke="#3b2616" stroke-width="2"/><rect x="180" y="198" width="10" height="70" fill="#7a5230"/><rect x="370" y="198" width="10" height="70" fill="#7a5230"/>
+      <rect x="240" y="156" width="76" height="28" fill="#1a1a1a"/>${item("cube",278,170,0.9)}
+      ${tog(`<rect x="238" y="152" width="80" height="32" fill="#d62828" stroke="#5a0f0f" stroke-width="2.5"/><rect x="266" y="146" width="24" height="8" rx="3" fill="#333"/><path d="M238,162 h80" stroke="#5a0f0f" stroke-width="2"/>`,
+            `<rect x="238" y="156" width="80" height="28" fill="none" stroke="#5a0f0f" stroke-width="2.5"/><path d="M238,156 l8,-26 h64 l8,26" fill="#d62828" stroke="#5a0f0f" stroke-width="2.5"/>`)}
+      ${mov(`<path d="M224,188 q-6,-44 22,-54 h64 q26,10 20,54z" fill="#8a9a5b" stroke="#4a5530" stroke-width="2.5"/><path d="M244,150 q32,12 66,0 M236,172 q40,10 82,0" stroke="#4a5530" fill="none" stroke-width="1.5"/>`)}
+      ${mov(`<circle cx="80" cy="256" r="34" fill="#1a1a1a"/><circle cx="80" cy="256" r="16" fill="#777" stroke="#333" stroke-width="3"/>`)}
+      ${mov(`<rect x="196" y="160" width="24" height="24" fill="#2a9d8f" stroke="#0f3d38" stroke-width="2"/><path d="M200,160 v-8 h10" stroke="#0f3d38" stroke-width="3" fill="none"/>`)}
+      <path d="M0,300 v-70 q30,-20 60,-10" fill="none"/>`;}},
+{ name:"Cabina telefonica, 1978",letter:"T",value:85,coins:[[30,284],[380,40]],
+  puzzle:{type:"keypad",riddle:"Il reporter con gli occhiali ha lasciato un biglietto: «Chiamami al giornale». Il giornale porta il nome di un pianeta, ma l'elenco telefonico è strappato. Componi sulla tastiera la seconda parola del nome del giornale, una lettera alla volta.",
+    answer:"752638",hints:["Il giornale di Metropolis si chiama Daily Planet.","Ogni lettera si compone con il tasto su cui è stampata: P è sul 7, L sul 5."]},
+  relic:{key:"glasses",name:"Gli occhiali da reporter",seek:"A un certo supereroe basta un paio d'occhiali per non farsi riconoscere. Li ha persi nella cabina, e qualcuno ci ha buttato sopra il giornale.",
+    ref:"Superman si cambia nelle cabine telefoniche, e a Clark Kent basta un paio d'occhiali per non farsi riconoscere dai colleghi del Daily Planet.",where:"Apri la porta della cabina e sposta il giornale a terra."},
+  draw(){let bricks="";for(let y=0;y<220;y+=14)for(let x=(y/14)%2?-12:0;x<400;x+=24)bricks+=`<rect x="${x}" y="${y}" width="22" height="12" fill="#8c4a3a"/>`;
+    return `<rect width="400" height="300" fill="#5e3026"/>${bricks}<rect y="220" width="400" height="80" fill="#8d8d8d"/><path d="M0,236 h400" stroke="#6d6d6d" stroke-width="3"/>
+      <rect x="330" y="40" width="6" height="200" fill="#333"/><path d="M320,40 h26 l-6,-12 h-14z" fill="#333"/><ellipse cx="333" cy="44" rx="10" ry="4" fill="#ffe8a3"/>
+      <rect x="146" y="30" width="108" height="16" fill="#c1121f"/><text x="200" y="42" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="11" fill="#fff">TELEFONO</text>
+      <rect x="150" y="46" width="100" height="222" fill="#2b2d42"/><rect x="150" y="250" width="100" height="18" fill="#555"/>
+      ${clue("L'apparecchio ha i tasti con le lettere: 2 ABC, 3 DEF, 4 GHI, 5 JKL, 6 MNO, 7 PQRS, 8 TUV, 9 WXYZ.",`<rect x="182" y="84" width="36" height="50" rx="4" fill="#8d99ae" stroke="#111" stroke-width="2"/><rect x="178" y="80" width="8" height="30" rx="3" fill="#111"/><rect x="190" y="96" width="22" height="26" fill="#edf2f4"/>`)}
+      ${clue("L'elenco telefonico è strappato: della pagina del giornale restano solo le lettere DAILY.",`<rect x="170" y="150" width="60" height="10" fill="#8c5a3c"/><rect x="176" y="138" width="46" height="12" fill="#ffd166" stroke="#111"/>`)}
+      ${item("glasses",200,256,1)}
+      ${mov(`<rect x="174" y="244" width="52" height="24" fill="#e9e4d8" stroke="#333" stroke-width="1.5" transform="rotate(-4 200 256)"/><path d="M180,250 h40 M180,256 h40 M180,262 h28" stroke="#888" transform="rotate(-4 200 256)"/>`)}
+      ${tog(`<rect x="152" y="48" width="96" height="220" fill="#bde0fe" fill-opacity=".3" stroke="#c1121f" stroke-width="5"/><path d="M152,120 h96 M152,190 h96" stroke="#c1121f" stroke-width="4"/><rect x="238" y="150" width="6" height="18" fill="#c1121f"/>`,
+            `<path d="M152,48 l-40,14 v220 l40,-14z" fill="#bde0fe" fill-opacity=".3" stroke="#c1121f" stroke-width="4"/>`)}
+      ${clue("In prima pagina: «Un uomo vola sopra la città! I testimoni: aveva un mantello rosso.»",`<rect x="30" y="160" width="70" height="76" fill="#264653" stroke="#111" stroke-width="2"/><rect x="38" y="168" width="54" height="30" fill="#e9e4d8"/><path d="M42,176 h46 M42,184 h30" stroke="#333" stroke-width="2"/>`)}
+      ${mov(`<path d="M270,280 q-12,-40 20,-50 q10,-8 20,0 q30,10 20,50z" fill="#222" stroke="#000" stroke-width="2"/><path d="M296,230 l4,-10 l4,10" stroke="#000" stroke-width="2" fill="none"/>`)}`;}},
+
+{ name:"Tempio perduto, 1936",letter:"O",value:90,coins:[[20,20],[380,120]],
+  puzzle:{type:"hanoi",n:4,riddle:"Per aprire il passaggio devi trasferire la pila di dischi di pietra dal piedistallo di sinistra a quello di destra. Tocca un piedistallo per prendere il disco in cima e un altro per posarlo. Un disco alla volta, e mai un disco su uno più piccolo.",
+    hints:["Con quattro dischi servono almeno 15 mosse. Il disco più piccolo si muove una mossa sì e una no, sempre nella stessa direzione.","Prima porta i tre dischi più piccoli sul piedistallo centrale, poi sposta il grande a destra, poi riporta i tre sopra di lui."]},
+  relic:{key:"sandbag",name:"Il sacchetto di sabbia",seek:"Un archeologo ha provato a scambiare un idolo d'oro con qualcosa dello stesso peso. Quel qualcosa è finito sotto il pavimento.",
+    ref:"Nella scena iniziale de I predatori dell'arca perduta (1981) Indiana Jones prova a sostituire un idolo d'oro con un sacchetto di sabbia. Il tempio non gradisce.",where:"Sposta la stuoia al centro del pavimento e apri la botola che c'è sotto."},
+  draw(){let blocks="";for(let y=0;y<210;y+=30)for(let x=(y/30)%2?-30:0;x<400;x+=60)blocks+=`<rect x="${x+2}" y="${y+2}" width="56" height="26" fill="#6b5a40" stroke="#4a3d2a"/>`;
+    const torch=x=>`<rect x="${x-3}" y="70" width="6" height="40" fill="#4a2e1a"/><path d="M${x},50 q-10,14 0,22 q10,-8 0,-22z" fill="#f4a261"/><path d="M${x},58 q-5,8 0,12 q5,-4 0,-12z" fill="#ffd166"/>`;
+    const ped=x=>`<rect x="${x-22}" y="180" width="44" height="30" fill="#8a7654" stroke="#4a3d2a" stroke-width="2"/><rect x="${x-28}" y="174" width="56" height="8" fill="#9c8762"/>`;
+    return `<rect width="400" height="300" fill="#3b3024"/>${blocks}<rect y="210" width="400" height="90" fill="#5a4a34"/>
+      ${torch(40)}${torch(360)}${ped(110)}${ped(200)}${ped(290)}
+      ${clue("Un'iscrizione sul muro: «Il sacerdote sposta una pietra alla volta, e mai la grande sopra la piccola.»",`<rect x="150" y="40" width="100" height="60" fill="#8a7654" stroke="#4a3d2a" stroke-width="3"/><path d="M162,56 h76 M162,70 h60 M162,84 h70" stroke="#4a3d2a" stroke-width="3" stroke-dasharray="6 4"/>`)}
+      <rect x="170" y="236" width="60" height="40" fill="#120d08"/>${item("sandbag",200,256,1)}
+      ${tog(`<rect x="170" y="236" width="60" height="40" fill="#7a6a4f" stroke="#3b3024" stroke-width="3"/><circle cx="200" cy="256" r="6" fill="none" stroke="#333" stroke-width="3"/>`,
+            `<path d="M170,236 l6,-22 h48 l6,22z" fill="#7a6a4f" stroke="#3b3024" stroke-width="3"/>`)}
+      ${mov(`<rect x="146" y="226" width="108" height="62" rx="3" fill="#b5651d" stroke="#6b3a10" stroke-width="2"/><path d="M146,240 h108 M146,256 h108 M146,272 h108" stroke="#e9c46a" stroke-width="4" stroke-dasharray="10 6"/>`)}
+      ${mov(`<path d="M40,286 q-14,-30 6,-50 v-10 h20 v10 q20,20 6,50z" fill="#a0522d" stroke="#4a2e1a" stroke-width="2"/>`)}
+      ${mov(`<path d="M330,286 q-14,-30 6,-50 v-10 h20 v10 q20,20 6,50z" fill="#8b4513" stroke="#4a2e1a" stroke-width="2"/>`)}`;}},
+
+{ name:"Cinema muto, 1927",letter:"Z",value:95,coins:[[386,14],[140,288]],
+  puzzle:{type:"magic",givens:{"0":2,"5":1},riddle:"Il proiezionista deve sistemare nove bobine numerate da 1 a 9 in una griglia tre per tre. Il pianista giura che ogni riga, ogni colonna e le due diagonali danno sempre la stessa somma. Due bobine sono già al loro posto. Tocca una casella per cambiarne il numero.",
+    hints:["Ogni riga somma 15, e al centro c'è sempre il 5.","La prima riga è 2, 7, 6."]},
+  relic:{key:"cane",name:"Il bastone di bambù",seek:"Il vagabondo più famoso del cinema muto non esce mai senza il suo bastone. Qualcuno l'ha chiuso nel pianoforte, e il pianoforte è coperto.",
+    ref:"Il bastoncino di bambù è inseparabile dal Vagabondo, il personaggio con cui Charlie Chaplin ha segnato il cinema muto.",where:"Togli il telo dal pianoforte, poi solleva il coperchio."},
+  draw(){let seats="";for(let r=0;r<3;r++)for(let c=0;c<9;c++)seats+=`<rect x="${140+c*28-(r*6)}" y="${218+r*26}" width="24" height="22" rx="6" fill="#7a1f2b" stroke="#3a0e14" stroke-width="2"/>`;
+    return `<rect width="400" height="300" fill="#1e1a1a"/><rect x="80" y="14" width="240" height="140" fill="#3a0e14"/>
+      ${clue("Didascalia sullo schermo: «Ogni fila, ogni colonna, ogni diagonale: sempre la stessa somma.»",`<rect x="96" y="24" width="208" height="120" fill="#e8e3d3"/><rect x="108" y="36" width="184" height="96" fill="none" stroke="#333" stroke-width="3"/><text x="200" y="92" text-anchor="middle" font-family="Georgia" font-style="italic" font-size="18" fill="#333">Sempre uguale…</text>`)}
+      <rect y="170" width="400" height="130" fill="#2a2222"/>${seats}
+      ${clue("Il proiettore ronza. Accanto, nove bobine numerate in disordine.",`<rect x="352" y="170" width="40" height="30" fill="#555" stroke="#222" stroke-width="2"/><circle cx="362" cy="164" r="10" fill="#333" stroke="#777" stroke-width="2"/><circle cx="382" cy="164" r="10" fill="#333" stroke="#777" stroke-width="2"/>`)}
+      <rect x="10" y="150" width="110" height="62" fill="#2b1d14" stroke="#120a05" stroke-width="2"/><rect x="12" y="196" width="106" height="8" fill="#f1f1f1"/><rect x="18" y="212" width="8" height="40" fill="#2b1d14"/><rect x="104" y="212" width="8" height="40" fill="#2b1d14"/>
+      <rect x="16" y="150" width="98" height="16" fill="#0d0805"/>${item("cane",62,158,0.8,90)}
+      ${tog(`<rect x="8" y="144" width="114" height="26" fill="#3b2a1e" stroke="#120a05" stroke-width="2"/>`,`<path d="M10,146 l28,-44 h82 l-2,44z" fill="#3b2a1e" stroke="#120a05" stroke-width="2"/>`)}
+      ${mov(`<path d="M2,140 q60,-14 126,0 l6,76 q-70,12 -138,0z" fill="#d8d2c4" stroke="#8a8474" stroke-width="2"/><path d="M20,146 q10,30 4,66 M60,142 q8,36 0,74 M104,144 q-6,34 4,70" stroke="#b5ae9c" stroke-width="2" fill="none"/>`)}
+      ${mov(`<path d="M232,208 l4,-26 h22 l4,26z" fill="#fff" stroke="#c1121f" stroke-width="2"/><path d="M240,208 v-26 M254,208 v-26" stroke="#c1121f" stroke-width="3"/>`)}`;}},
+
+{ name:"Studio radiofonico, 1938",letter:"M",value:100,coins:[[380,290],[200,14]],
+  puzzle:{type:"mastermind",riddle:"Il mixer ha quattro manopole e ognuna va girata sul colore giusto per andare in onda. Dopo ogni tentativo la spia risponde: un pallino pieno per ogni manopola giusta al posto giusto, uno vuoto per ogni colore giusto ma al posto sbagliato. Hai otto tentativi prima che la trasmissione salti.",
+    colors:[["rosso","#d62828"],["giallo","#fcbf49"],["verde","#2a9d8f"],["blu","#3a86ff"],["bianco","#f1f1f1"],["nero","#222222"]],secret:["verde","rosso","blu","verde"],tries:8,
+    hints:["Due biglietti nello studio escludono un colore e legano due manopole tra loro.","La prima manopola è verde e la seconda è rossa."]},
+  relic:{key:"tripod",name:"Il tripode marziano",seek:"Un giocattolo a tre zampe ricorda la trasmissione che fece credere a qualcuno in un'invasione. È chiuso in un cassetto della scrivania, dietro la sedia.",
+    ref:"Nel 1938 Orson Welles trasmise alla radio La guerra dei mondi di H. G. Wells come se fosse un notiziario in diretta, e alcuni ascoltatori si allarmarono davvero.",where:"Sposta la sedia e apri il cassetto centrale della scrivania."},
+  draw(){let pan="";for(let x=0;x<400;x+=40)pan+=`<rect x="${x+2}" y="0" width="36" height="170" fill="#8b5e34"/>`;
+    const drawer=(x,inner)=>`<rect x="${x}" y="212" width="52" height="46" fill="#1a0f06"/>${inner||""}${tog(`<rect x="${x}" y="212" width="52" height="46" fill="#a86b3c" stroke="#4a2e1a" stroke-width="2"/><circle cx="${x+26}" cy="235" r="3.5" fill="#e9c46a"/>`,`<rect x="${x-3}" y="258" width="58" height="16" fill="#a86b3c" stroke="#4a2e1a" stroke-width="2"/><circle cx="${x+26}" cy="266" r="3.5" fill="#e9c46a"/>`)}`;
+    return `<rect width="400" height="300" fill="#5c3a1e"/>${pan}<rect y="170" width="400" height="130" fill="#3d2616"/>
+      ${clue("Un biglietto sotto l'insegna: «Nessuna manopola è gialla, stasera.»",`<rect x="150" y="18" width="100" height="30" rx="4" fill="#c1121f" stroke="#300" stroke-width="2"/><text x="200" y="39" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="15" fill="#fff">IN ONDA</text>`)}
+      ${clue("La radio gracchia: «…strani oggetti sono atterrati nel New Jersey…»",`<path d="M30,160 v-60 a40,40 0 0,1 80,0 v60z" fill="#a0522d" stroke="#4a2e1a" stroke-width="3"/><path d="M44,100 a26,26 0 0,1 52,0 v20 h-52z" fill="#e9c46a"/><circle cx="56" cy="142" r="6" fill="#4a2e1a"/><circle cx="84" cy="142" r="6" fill="#4a2e1a"/>`)}
+      <rect x="120" y="180" width="200" height="14" fill="#c68b59" stroke="#4a2e1a" stroke-width="2"/><rect x="126" y="194" width="188" height="84" fill="#8b5e34" stroke="#4a2e1a" stroke-width="2"/>
+      ${clue("Sul microfono, scritto a matita: «La prima e l'ultima manopola hanno lo stesso colore.»",`<rect x="196" y="140" width="8" height="40" fill="#555"/><rect x="186" y="104" width="28" height="40" rx="12" fill="#bbb" stroke="#333" stroke-width="2"/><path d="M190,114 h20 M190,122 h20 M190,130 h20" stroke="#777"/>`)}
+      ${drawer(132)}${drawer(194,item("tripod",220,236,1))}${drawer(256)}
+      ${mov(`<rect x="176" y="150" width="68" height="70" rx="8" fill="#6d2e46" stroke="#2a0e1a" stroke-width="3"/><rect x="168" y="216" width="84" height="20" rx="5" fill="#7d3a55" stroke="#2a0e1a" stroke-width="3"/><rect x="176" y="236" width="8" height="54" fill="#2a0e1a"/><rect x="236" y="236" width="8" height="54" fill="#2a0e1a"/>`)}`;}},
+
+{ name:"Ufficio spie, 1964",letter:"E",value:110,coins:[[20,286],[300,16]],
+  puzzle:{type:"cipher",cipher:"HNPAHAV",answer:"AGITATO",riddle:"Da Londra è arrivato un telegramma cifrato: HNPAHAV. Dice come l'agente preferisce il suo cocktail. Ruota il disco cifrante finché la chiave non è quella giusta, poi scrivi la parola decifrata. La chiave è nascosta nell'ufficio.",
+    hints:["La chiave è nel fascicolo dell'agente: il suo numero di matricola, senza gli zeri.","Con la chiave 7, la H del messaggio corrisponde alla A."]},
+  relic:{key:"martini",name:"Il martini",seek:"Il cocktail di un agente segreto che non va mai mescolato. La valigetta sulla scrivania ha più di un segreto, ed è sepolta sotto le carte.",
+    ref:"James Bond, l'agente 007 creato da Ian Fleming, ordina il suo martini agitato, non mescolato.",where:"Sposta le carte, apri la valigetta e poi il suo doppio fondo."},
+  draw(){return `<rect width="400" height="300" fill="#2f3e46"/><rect y="190" width="400" height="110" fill="#3a2a1e"/>
+      ${clue("Una mappa del mondo piena di puntine rosse. Su Londra c'è scritto: «Chiave nel fascicolo».",`<rect x="30" y="20" width="160" height="96" fill="#cad2c5" stroke="#1b1b1b" stroke-width="3"/><path d="M50,50 q20,-16 40,0 q10,20 -10,30 q-30,6 -30,-30z M110,40 q30,-10 50,10 q-6,30 -30,36 q-24,-10 -20,-46z" fill="#84a98c"/><circle cx="98" cy="46" r="3" fill="#c1121f"/><circle cx="140" cy="70" r="3" fill="#c1121f"/>`)}
+      ${clue("Fascicolo riservato: AGENTE 007. A margine, a matita: «Gli zeri non contano.»",`<rect x="300" y="160" width="70" height="26" fill="#d4a373" stroke="#5c3b1e" stroke-width="2" transform="rotate(-6 335 173)"/><text x="335" y="178" text-anchor="middle" font-family="Georgia" font-size="10" fill="#5c3b1e" transform="rotate(-6 335 173)">RISERVATO</text>`)}
+      <rect x="220" y="30" width="60" height="60" rx="30" fill="#e9e4d8" stroke="#1b1b1b" stroke-width="3"/><path d="M250,60 v-20 M250,60 h14" stroke="#1b1b1b" stroke-width="3"/>
+      <rect x="40" y="186" width="320" height="12" fill="#6f4e37" stroke="#2a1a0c" stroke-width="2"/><rect x="50" y="198" width="14" height="90" fill="#6f4e37"/><rect x="336" y="198" width="14" height="90" fill="#6f4e37"/>
+      <path d="M80,186 v-50 M70,136 h30 l-6,-20 h-18z" stroke="#1b1b1b" stroke-width="3" fill="#2a9d8f"/>
+      <rect x="154" y="154" width="92" height="30" fill="#140c06"/>${item("martini",200,170,1)}
+      ${tog(`<rect x="154" y="152" width="92" height="32" fill="#6b4226" stroke="#2a1a0c" stroke-width="1.5"/><path d="M158,160 h84 M158,168 h84 M158,176 h84" stroke="#4a2c18"/>`,`<rect x="250" y="140" width="10" height="44" fill="#6b4226" stroke="#2a1a0c"/>`)}
+      ${tog(`<rect x="148" y="148" width="104" height="40" rx="4" fill="#1b1b1b" stroke="#000" stroke-width="2"/><rect x="186" y="140" width="28" height="10" rx="3" fill="none" stroke="#000" stroke-width="4"/><rect x="164" y="160" width="10" height="6" fill="#c9a227"/><rect x="226" y="160" width="10" height="6" fill="#c9a227"/>`,
+            `<rect x="148" y="112" width="104" height="36" rx="4" fill="#2b2b2b" stroke="#000" stroke-width="2"/><rect x="148" y="148" width="104" height="40" fill="none" stroke="#000" stroke-width="3"/>`)}
+      ${mov(`<rect x="136" y="138" width="80" height="54" fill="#f1ede0" stroke="#777" transform="rotate(-8 176 165)"/><rect x="186" y="140" width="80" height="54" fill="#faf7ee" stroke="#777" transform="rotate(6 226 167)"/><path d="M196,154 h56 M196,162 h56 M196,170 h40" stroke="#999" transform="rotate(6 226 167)"/>`)}`;}},
+
+{ name:"Sala flipper, 1976",letter:"F",value:120,coins:[[200,288],[20,60]],
+  puzzle:{type:"lights",n:4,start:[1,4,6,11,13,14],riddle:"Il tabellone del flipper è impazzito: sedici luci, e ogni volta che ne tocchi una cambiano stato anche quelle sopra, sotto, a sinistra e a destra. Accendile tutte per ottenere la partita speciale.",
+    hints:["Conta solo quali luci tocchi, non l'ordine, e toccarne una due volte è come non toccarla: te ne servono sei.","Tocca la seconda della prima riga, la prima e la terza della seconda, l'ultima della terza, la seconda e la terza dell'ultima."]},
+  relic:{key:"ball",name:"La pallina d'argento",seek:"Un mago del flipper sordo, muto e cieco la faceva volare come nessun altro. È rimasta nel flipper di destra, dietro lo sportellino delle monete, e qualcosa lo blocca.",
+    ref:"Tommy, l'opera rock degli Who (1969) portata al cinema da Ken Russell nel 1975, racconta un ragazzo sordo, muto e cieco che diventa un campione di flipper.",where:"Sposta il cambiamonete, poi apri lo sportellino in basso sul flipper di destra."},
+  draw(){const pin=(x,c1,c2)=>`<g transform="translate(${x} 0)"><rect x="10" y="30" width="120" height="70" fill="${c1}" stroke="#000" stroke-width="3"/><rect x="20" y="40" width="100" height="40" fill="${c2}"/><path d="M0,120 l140,-16 v40 l-140,20z" fill="#3a0ca3" stroke="#000" stroke-width="3"/><rect x="10" y="150" width="120" height="100" fill="${c1}" stroke="#000" stroke-width="3"/><rect x="16" y="250" width="10" height="40" fill="#222"/><rect x="114" y="250" width="10" height="40" fill="#222"/><rect x="60" y="100" width="20" height="10" fill="#222"/></g>`;
+    return `<rect width="400" height="300" fill="#1b1036"/><rect y="250" width="400" height="50" fill="#2d1b4e"/>
+      ${pin(20,"#f72585","#4cc9f0")}${pin(230,"#ffb703","#fb8500")}
+      ${clue("Sul vetro del flipper di sinistra: «Tutte le luci accese, partita speciale!»",`<rect x="40" y="40" width="100" height="40" fill="#4cc9f0"/><circle cx="60" cy="60" r="6" fill="#fff"/><circle cx="90" cy="60" r="6" fill="#fff"/><circle cx="120" cy="60" r="6" fill="#fff"/>`)}
+      <rect x="280" y="200" width="40" height="32" fill="#0c0c0c"/>${item("ball",300,216,1)}
+      ${tog(`<rect x="276" y="196" width="48" height="40" fill="#adb5bd" stroke="#333" stroke-width="2"/><rect x="296" y="204" width="8" height="14" fill="#333"/>`,`<rect x="262" y="196" width="14" height="40" fill="#adb5bd" stroke="#333" stroke-width="2"/>`)}
+      ${mov(`<rect x="258" y="150" width="84" height="140" rx="4" fill="#6c757d" stroke="#222" stroke-width="3"/><rect x="270" y="164" width="60" height="30" fill="#212529"/><text x="300" y="184" text-anchor="middle" font-family="Georgia" font-size="11" fill="#ffd166">CAMBIO</text><rect x="290" y="220" width="20" height="30" fill="#343a40"/>`)}
+      ${mov(`<ellipse cx="180" cy="236" rx="20" ry="6" fill="#e63946" stroke="#222" stroke-width="2"/><rect x="177" y="240" width="6" height="46" fill="#aaa"/>`)}`;}},
+
+{ name:"Edicola, 1974",letter:"I",value:130,coins:[[384,14],[60,292]],
+  puzzle:{type:"nonogram",target:["..##..",".####.","######","#.##.#","..##..",".#..#."],riddle:"L'edicolante ha un rompicapo tutto suo: una griglia sei per sei da annerire seguendo i numeri di righe e colonne. Solo chi lo completa può sbirciare nella sua cassetta.",
+    hints:["La terza riga è piena del tutto, e le due colonne centrali hanno un blocco da cinque.","Dall'alto: due, quattro, sei quadretti centrati; poi i due angoli e i due centrali; poi i due centrali; infine due quadretti staccati."]},
+  relic:{key:"sticker",name:"La figurina introvabile",seek:"Celo, celo, manca! In ogni album ce n'è una che non esce mai. L'edicolante la tiene sotto chiave, sotto i giornalini, dietro l'espositore.",
+    ref:"Lo scambio di figurine nei cortili, tra celo e manca, è un rito della cultura pop italiana, e in ogni album c'era sempre la figurina introvabile.",where:"Sposta l'espositore girevole, apri la cassetta dei soldi e sposta i giornalini che ci sono dentro."},
+  draw(){const r=rng(74),cols=["#e63946","#ffd166","#06d6a0","#118ab2","#ef476f","#f4a261"];let mags="";
+    for(let row=0;row<3;row++)for(let c=0;c<9;c++)mags+=`<rect x="${74+c*30}" y="${60+row*40}" width="26" height="34" fill="${cols[Math.floor(r()*6)]}" stroke="#1b1b1b"/><rect x="${78+c*30}" y="${64+row*40}" width="18" height="6" fill="#fff"/>`;
+    let awn="";for(let i=0;i<14;i++)awn+=`<path d="M${60+i*20},30 h20 v14 q-10,8 -20,0z" fill="${i%2?'#fff':'#2d6a4f'}"/>`;
+    return `<rect width="400" height="300" fill="#a8dadc"/><rect y="220" width="400" height="80" fill="#8d8d8d"/>
+      <rect x="60" y="30" width="280" height="190" fill="#2d6a4f" stroke="#1b4332" stroke-width="3"/>${awn}${mags}
+      ${clue("Un cartello: «Figurine: 30 lire la bustina. Scambi solo il sabato.»",`<rect x="8" y="150" width="46" height="60" fill="#fff4d6" stroke="#333" stroke-width="2"/><path d="M14,164 h34 M14,174 h34 M14,184 h24" stroke="#999"/>`)}
+      <rect x="60" y="200" width="280" height="20" fill="#1b4332"/>
+      <rect x="254" y="180" width="62" height="24" fill="#111"/>${item("sticker",284,192,0.8)}
+      ${mov(`<rect x="262" y="182" width="46" height="22" fill="#ffd166" stroke="#333"/><rect x="264" y="186" width="42" height="4" fill="#e63946"/><rect x="264" y="194" width="42" height="4" fill="#118ab2"/>`)}
+      ${tog(`<rect x="250" y="176" width="70" height="30" fill="#52796f" stroke="#1b1b1b" stroke-width="2"/><rect x="280" y="186" width="10" height="8" fill="#e9c46a"/>`,`<rect x="250" y="150" width="70" height="26" fill="#52796f" stroke="#1b1b1b" stroke-width="2"/>`)}
+      ${mov(`<rect x="283" y="110" width="4" height="180" fill="#555"/>${[0,1,2].map(i=>`<rect x="${244+i*28}" y="120" width="24" height="32" fill="${cols[i]}" stroke="#111"/><rect x="${244+i*28}" y="160" width="24" height="32" fill="${cols[i+3]}" stroke="#111"/><rect x="${244+i*28}" y="200" width="24" height="32" fill="${cols[(i+2)%6]}" stroke="#111"/>`).join("")}<rect x="270" y="286" width="30" height="6" fill="#333"/>`)}
+      ${mov(`<rect x="90" y="240" width="70" height="40" fill="#e9e4d8" stroke="#555" stroke-width="2"/><path d="M90,260 h70 M125,240 v40" stroke="#8d6346" stroke-width="3"/>`)}`;}},
+
+{ name:"Sala macchine sottomarina, 1954",letter:"T",value:140,coins:[[386,286],[14,150]],
+  puzzle:{type:"pipes",grid:[[["I",0],["L",0],["T",0],["L",1],["I",1]],[["T",2],["I",1],["L",3],["L",3],["L",0]],[["I",0],["L",3],["I",2],["L",1],["I",1]],[["L",2],["T",1],["I",1],["L",0],["I",3]],[["T",3],["L",1],["I",0],["T",2],["L",2]]],from:0,to:4,inLabel:"caldaia ▶",outLabel:"▶ elica",
+    riddle:"La pressione cala: il vapore deve arrivare dalla caldaia all'elica attraverso una griglia di tubi cinque per cinque. Ruota le sezioni toccandole finché il circuito non è chiuso.",
+    hints:["Il percorso non è il più corto: a un certo punto deve risalire di una riga prima di scendere lungo il bordo destro.","Dalla caldaia: una a destra, giù per due, due a destra, su di una, a destra, poi giù lungo l'ultima colonna fino all'elica."]},
+  relic:{key:"squid",name:"Il calamaro gigante",seek:"Una creatura piena di tentacoli ha dato filo da torcere a un sottomarino leggendario. Ne è rimasto un modellino, chiuso nell'armadietto dietro lo scafandro, sotto qualcosa di pesante.",
+    ref:"Nel film Disney Ventimila leghe sotto i mari (1954), tratto dal romanzo di Jules Verne, il Nautilus del capitano Nemo affronta un calamaro gigante.",where:"Sposta lo scafandro, apri l'armadietto e togli l'elmo che c'è dentro."},
+  draw(){let riv="";for(let x=10;x<400;x+=40)for(let y=10;y<230;y+=40)riv+=`<circle cx="${x}" cy="${y}" r="2.5" fill="#1b262c"/>`;
+    return `<rect width="400" height="300" fill="#52616b"/>${riv}<rect y="230" width="400" height="70" fill="#2f3e46"/>
+      <path d="M0,60 h240 q20,0 20,20 v40" stroke="#b08d57" stroke-width="12" fill="none"/><path d="M0,90 h180" stroke="#8a6d3b" stroke-width="8" fill="none"/>
+      ${clue("L'oblò: fuori passa un banco di pesci. Il vetro trema a ogni colpo di pressione.",`<circle cx="120" cy="160" r="40" fill="#b08d57"/><circle cx="120" cy="160" r="30" fill="#1d3557"/><path d="M104,156 q8,-6 16,0 q-8,6 -16,0z M122,170 q6,-4 12,0 q-6,4 -12,0z" fill="#a8dadc"/>`)}
+      ${clue("Manometro: PRESSIONE IN CALO. Sotto, una targhetta: «Il vapore non sceglie mai la via più corta.»",`<circle cx="210" cy="150" r="22" fill="#e9e4d8" stroke="#b08d57" stroke-width="6"/><path d="M210,150 l-10,10" stroke="#c1121f" stroke-width="3"/>`)}
+      ${tog(`<rect x="20" y="120" width="50" height="100" fill="#6b7a82" stroke="#1b262c" stroke-width="3"/><path d="M30,134 h30 M30,142 h30" stroke="#1b262c" stroke-width="2"/>`,`<rect x="20" y="120" width="50" height="100" fill="#1b262c"/><rect x="70" y="120" width="12" height="100" fill="#6b7a82" stroke="#1b262c" stroke-width="2"/>`)}
+      <rect x="286" y="126" width="68" height="148" fill="#1b262c"/>${item("squid",320,240,0.9)}
+      ${mov(`<circle cx="320" cy="236" r="22" fill="#b08d57" stroke="#5a4526" stroke-width="3"/><circle cx="320" cy="236" r="9" fill="#a8dadc" stroke="#5a4526" stroke-width="3"/>`)}
+      ${tog(`<rect x="280" y="120" width="80" height="160" fill="#6b7a82" stroke="#1b262c" stroke-width="3"/><path d="M296,140 h48 M296,148 h48 M296,156 h48" stroke="#1b262c" stroke-width="2"/><rect x="346" y="196" width="6" height="18" fill="#1b262c"/>`,`<rect x="360" y="120" width="16" height="160" fill="#6b7a82" stroke="#1b262c" stroke-width="2"/>`)}
+      ${mov(`<circle cx="320" cy="128" r="30" fill="#b08d57" stroke="#5a4526" stroke-width="3"/><circle cx="320" cy="128" r="12" fill="#1d3557" stroke="#5a4526" stroke-width="3"/><path d="M280,160 h80 l10,130 h-100z" fill="#8a7a5a" stroke="#4a3d2a" stroke-width="3"/><path d="M290,200 h60 M286,240 h68" stroke="#4a3d2a" stroke-width="3"/>`)}
+      ${mov(`<rect x="170" y="250" width="50" height="36" fill="#8d6e3a" stroke="#222" stroke-width="2"/><path d="M170,250 l50,36 M220,250 l-50,36" stroke="#5c4520" stroke-width="2"/>`)}`;}},
+
+{ name:"Studio televisivo, gran finale",letter:null,value:200,coins:[[376,290],[200,12]],
+  puzzle:{type:"anagram",groups:[11,1,7],answer:"FOTOROMANZIEFUMETTI",riddle:"Il tabellone chiede la frase finale. Riordina le diciannove lettere incise sui cimeli: otterrai le due forme di cultura pop che il museo si è dimenticato di esporre. Prima una parola di undici lettere, poi una congiunzione di una lettera, infine una parola di sette.",
+    hints:["La prima è un racconto per immagini fatto con fotografie; la seconda si legge a vignette disegnate.","Comincia con FOTO e finisce con TTI."]},
+  relic:{key:"envelope",name:"La busta sbagliata",seek:"Ogni premiazione ha la sua busta, ma una volta ne fu aperta quella sbagliata. Cercala dietro le quinte, in un baule, sotto la posta dei fan.",
+    ref:"Agli Oscar 2017 venne letta la busta sbagliata e La La Land fu annunciato come miglior film al posto di Moonlight.",where:"Sposta il sipario di sinistra, apri il baule che c'era dietro e sposta il sacco della posta."},
+  draw(){let bulbs="";for(let i=0;i<14;i++)bulbs+=`<circle cx="${80+i*18.5}" cy="34" r="4" fill="#ffd23f"/>`;
+    let tiles="";for(let i=0;i<19;i++){const x=78+i*13+(i>10?6:0)+(i>11?6:0);tiles+=`<rect x="${x}" y="56" width="11" height="22" rx="2" fill="#0d3b66" stroke="#ffd23f" stroke-width="1.2"/>`}
+    const curtain=x=>{let s="";for(let i=0;i<5;i++)s+=`<rect x="${x+i*12}" y="0" width="12" height="230" fill="${i%2?'#9d0208':'#b5171e'}"/>`;return mov(s)};
+    return `<rect width="400" height="300" fill="#240046"/><rect x="0" y="0" width="60" height="230" fill="#12002a"/><rect x="340" y="0" width="60" height="230" fill="#12002a"/>
+      <rect x="10" y="174" width="42" height="42" fill="#1a0d05"/>${item("envelope",31,196,0.8,8)}
+      ${mov(`<path d="M12,216 q-4,-26 8,-38 q10,-6 22,0 q12,12 8,38z" fill="#c2a878" stroke="#6b5a3a" stroke-width="2"/><path d="M22,180 l8,-6 l8,6" stroke="#6b5a3a" stroke-width="2" fill="none"/>`)}
+      ${tog(`<rect x="4" y="168" width="54" height="54" rx="3" fill="#6b3e1e" stroke="#2a1405" stroke-width="2.5"/><path d="M4,186 h54 M4,204 h54" stroke="#c9a227" stroke-width="3"/><rect x="26" y="180" width="10" height="10" fill="#c9a227"/>`,`<rect x="4" y="140" width="54" height="28" rx="3" fill="#6b3e1e" stroke="#2a1405" stroke-width="2.5"/><rect x="4" y="168" width="54" height="54" fill="none" stroke="#2a1405" stroke-width="3"/>`)}
+      <rect x="70" y="22" width="260" height="76" rx="8" fill="#10002b" stroke="#ffd23f" stroke-width="3"/>${bulbs}${tiles}
+      <path d="M0,230 h400 v70 h-400z" fill="#5a189a"/><ellipse cx="200" cy="240" rx="150" ry="14" fill="#7b2cbf"/>
+      ${clue("Il presentatore sussurra: «Diciannove lettere, tutte già tue. Due forme di cultura pop, unite da una e.»",`<g transform="translate(160 130)"><path d="M0,100 l10,-80 h60 l10,80z" fill="#ffd23f" stroke="#10002b" stroke-width="3"/><rect x="8" y="10" width="64" height="14" rx="3" fill="#ff3fa4"/><circle cx="40" cy="55" r="12" fill="#10002b"/></g>`)}
+      ${curtain(0)}${curtain(340)}`;}}
+];
+
+// ================= stato
+const $=id=>document.getElementById(id);
+const scene=$("scene"),overlay=$("overlay"),note=$("note");
+const TIERS=[["Ala Est","primi passi","#2f6f6a"],["Ala Ovest","apprendista","#8a6d1e"],["Ala Nord","investigatore","#9b2d20"],["Sotterranei","gran maestro","#4a2e5c"]];
+const SEALS=[[150,240],[290,205],[330,60],[130,120],[120,190],[205,60],[300,140],[40,250],[360,240],[300,270],[120,190],[120,262],[270,140],[360,100],[350,120],[110,250],[200,120],[30,110],[100,260],[100,200]];
+const BONUS=[[[200, 150, "Pac-Man (1980): secondo il suo creatore Toru Iwatani, la forma del protagonista nacque guardando una pizza a cui mancava una fetta."], [380, 280, "Nel primo Donkey Kong (1981) debuttò un carpentiere baffuto chiamato Jumpman: di lì a poco sarebbe diventato Mario."]], [[40, 60, "La guerra dei formati: negli anni '80 il VHS di JVC batté il Betamax di Sony, anche se molti consideravano il Betamax migliore."], [380, 290, "Di tutti i negozi Blockbuster del mondo ne è rimasto uno solo, a Bend, in Oregon."]], [[200, 66, "Lo Studio 54 di New York, aperto nel 1977, era la discoteca più esclusiva del mondo: all'ingresso decideva tutto il buttafuori."], [352, 110, "Gli ABBA vinsero l'Eurovision nel 1974 con Waterloo, e da lì conquistarono le piste di mezzo mondo."]], [[280, 60, "Nel 1996 in Giappone uscirono Pokémon Rosso e Verde per Game Boy: 151 creature da catturare."], [345, 120, "La lampada lava fu inventata nel 1963 dal britannico Edward Craven Walker."]], [[170, 95, "Il primo drive-in della storia aprì nel 1933 a Camden, nel New Jersey."], [70, 250, "La Cadillac rosa è legata a Elvis Presley, che nel 1955 ne regalò una a sua madre."]], [[118, 58, "Sgt. Pepper's dei Beatles (1967) fu tra i primi album rock con i testi delle canzoni stampati sulla copertina."], [380, 262, "Il juke-box deve il nome ai «juke joint», i locali da ballo del Sud degli Stati Uniti."]], [[110, 100, "HAL 9000, il computer di 2001: Odissea nello spazio (1968): spostando ogni lettera di una posizione si ottiene IBM. Kubrick e Clarke hanno sempre negato che fosse voluto."], [252, 120, "Il teletrasporto di Star Trek (1966) nacque anche per risparmiare sui costosi effetti degli atterraggi."]], [[330, 60, "Il Commodore 64, uscito nel 1982, è considerato il singolo modello di computer più venduto della storia."], [40, 282, "Ritorno al futuro II fece sognare le scarpe che si allacciano da sole: nel 2016 ne fu prodotto davvero un modello."]], [[310, 208, "In Happy Days, la serie ambientata negli anni '50, Fonzie accendeva il juke-box con un colpo di pugno."], [200, 40, "Chi ha inventato l'hamburger è ancora conteso tra più città americane: a New Haven Louis' Lunch sostiene di servirlo dal 1900."]], [[60, 60, "Frankenstein nacque nel 1816 da una sfida tra amici a Villa Diodati, sul lago di Ginevra: chi scrive la storia più spaventosa?"], [340, 232, "Nel Giro del mondo in 80 giorni (1872) di Verne, Phileas Fogg vince la scommessa grazie al fuso orario."]], [[60, 70, "In Ritorno al futuro (1985) la DeLorean viaggia nel tempo quando raggiunge le 88 miglia orarie."], [380, 262, "Il cubo di Rubik ha più di 43 miliardi di miliardi di combinazioni possibili."]], [[333, 44, "Dal 1963 il Dottore di Doctor Who viaggia nel tempo dentro una cabina della polizia blu, il TARDIS."], [380, 262, "In Italia i gettoni telefonici sono rimasti in uso fino al 2001, e per anni valevano anche come moneta."]], [[40, 62, "La torre di Hanoi fu inventata nel 1883 da Édouard Lucas, con una leggenda: quando i sacerdoti avranno spostato tutti i 64 dischi d'oro, il mondo finirà."], [330, 250, "Tomb Raider (1996) ha portato l'archeologia d'avventura nei videogiochi con Lara Croft."]], [[40, 40, "Viaggio nella Luna (1902) di Georges Méliès fu tra i film più copiati illegalmente della sua epoca."], [300, 250, "Il cantante di jazz (1927) fu il primo lungometraggio con dialoghi sincronizzati: l'inizio della fine del cinema muto."]], [[260, 60, "Nel 1922, a New York, la stazione WEAF trasmise quello che è considerato il primo spot pubblicitario radiofonico."], [60, 250, "Guglielmo Marconi vinse il premio Nobel per la fisica nel 1909."]], [[250, 60, "La macchina cifrante Enigma dei tedeschi fu violata anche grazie al lavoro di Alan Turing a Bletchley Park."], [380, 262, "Ian Fleming prese il nome James Bond da un ornitologo americano, autore di una guida sugli uccelli dei Caraibi."]], [[200, 40, "Nel 1976 Roger Sharpe fece tornare legale il flipper a New York: annunciò un colpo davanti al consiglio comunale e lo realizzò."], [320, 60, "Si racconta che Space Invaders (1978) fosse così popolare in Giappone da far mancare le monete da 100 yen."]], [[150, 90, "Topolino, il settimanale, esce in Italia nel formato libretto dal 1949."], [200, 38, "Diabolik, creato dalle sorelle Angela e Luciana Giussani nel 1962, diede il via al fumetto «nero» italiano."]], [[60, 60, "Il Nautilus di Verne prende il nome da un vero sottomarino progettato da Robert Fulton intorno al 1800."], [380, 40, "Nel 1954 fu varato il primo sottomarino a propulsione nucleare: si chiamava proprio Nautilus."]], [[370, 100, "Rischiatutto di Mike Bongiorno, dal 1970, portò in Italia il quiz con il tabellone e le domande divise per categorie."], [200, 282, "Il fotoromanzo nacque in Italia alla fine degli anni '40, con riviste come Bolero Film."]]];
+const SAVE_KEY="museo-enigmi-pop-v2";
+let save={done:{},coins:2,got:[],notes:{},bonus:[]};
+let cur=-1,phase="explore",hintStep=0,wrong=0,seq=[],noteTimer=null,lastPts=0;
+const norm=s=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+const worth=()=>Math.max(Math.round(rooms[cur].value*0.3),Math.round(rooms[cur].value*(1-0.15*wrong)));
+const total=()=>Object.values(save.done).reduce((a,b)=>a+b,0);
+const doneCount=()=>Object.keys(save.done).length;
+const finalOpen=()=>[...Array(19).keys()].every(i=>save.done[i]!==undefined);
+async function loadSave(){try{const r=await window.storage.get(SAVE_KEY);if(r&&r.value)save=Object.assign(save,JSON.parse(r.value))}catch(e){}save.bonus=save.bonus||[]}
+async function persist(){try{await window.storage.set(SAVE_KEY,JSON.stringify(save))}catch(e){}}
+function fb(msg,cls){const f=$("feedback");f.textContent=msg;f.className="feedback "+(cls||"")}
+function hud(){
+  $("coinCount").textContent=save.coins;
+  if(cur<0)return;
+  $("puzzleVal").textContent={explore:"da esplorare",puzzle:`vale ${worth()} punti`,item:"cerca il cimelio",done:"completata"}[phase];
+  const n=(save.notes[cur]||[]).length;$("notesCount").textContent=n||"";
+  $("hintBtn").textContent=save.coins>0?"Indizio · 1 moneta":"Nessuna moneta";
+}
+
+// ================= enigmi =================
+const P={};
+P.input=(p,el)=>{
+  el.innerHTML=`<div class="row"><input id="answer" autocomplete="off" autocapitalize="characters" placeholder="${p.placeholder||'La risposta'}" aria-label="Risposta"><button id="checkBtn">Rispondi</button></div>`;
+  const go=()=>{const v=norm($("answer").value);if(!v)return;if(v===p.answer)solved();else wrongAnswer("Risposta errata. L'enigma ora vale un po' meno.")};
+  $("checkBtn").onclick=go;$("answer").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+};
+P.lock=(p,el)=>{
+  const idx=p.dials.map(()=>0);
+  el.innerHTML=`<div class="lock">${p.dials.map((d,i)=>`<div class="dial"><button class="alt" data-i="${i}" data-d="1" aria-label="Aumenta">▲</button><output id="dial${i}">${d[0]}</output><button class="alt" data-i="${i}" data-d="-1" aria-label="Diminuisci">▼</button>${p.labels?`<small>${p.labels[i]}</small>`:""}</div>`).join("")}</div>
+    <div class="row" style="justify-content:center"><button id="checkBtn">Apri il lucchetto</button></div>`;
+  el.querySelectorAll(".dial button").forEach(b=>b.onclick=()=>{const i=+b.dataset.i,n=p.dials[i].length;idx[i]=(idx[i]+ +b.dataset.d+n)%n;$("dial"+i).textContent=p.dials[i][idx[i]]});
+  $("checkBtn").onclick=()=>{if(idx.every((v,i)=>p.dials[i][v]===p.answer[i]))solved();else wrongAnswer("Il lucchetto non si apre.")};
+};
+P.choice=(p,el)=>{
+  el.innerHTML=`<div class="choices" style="grid-template-columns:repeat(${p.cols},1fr)">${p.options.map(o=>`<button class="alt">${o}</button>`).join("")}</div>`;
+  el.querySelectorAll("button").forEach(b=>b.onclick=()=>{if(b.textContent===p.answer)solved();else{b.disabled=true;wrongAnswer(`No, non è ${b.textContent}.`)}});
+};
+P.seq=(p,el)=>{
+  el.innerHTML=`<div class="row" style="margin-bottom:8px;min-height:30px" id="seqView"></div><div class="row"><button class="alt" id="resetSeq">Ricomincia la sequenza</button></div>`;
+  $("resetSeq").onclick=()=>{seq=[];drawSeq();fb("")};
+};
+function drawSeq(){const m={giallo:"#ffbe0b",blu:"#3a86ff",rosa:"#ff006e",arancione:"#fb5607",viola:"#8338ec"};
+  $("seqView").innerHTML=seq.map(c=>`<span style="display:inline-block;width:26px;height:26px;border-radius:4px;border:2px solid var(--ink);background:${m[c]}"></span>`).join("")}
+
+P.pipes=(p,el)=>{
+  const B={I:[0,2],L:[0,1],T:[0,1,2]},n=p.grid.length,W=n>4?"min(300px,74vw)":"min(260px,70vw)";
+  const g=p.grid.map(r=>r.map(([t,rot])=>({t,rot})));
+  const conns=c=>B[c.t].map(d=>(d+c.rot)%4);
+  const svg=c=>{const e=[[30,0],[60,30],[30,60],[0,30]];return `<svg viewBox="0 0 60 60" style="transform:rotate(${c.rot*90}deg)" data-rot="${c.rot}">${B[c.t].map(d=>`<path d="M30,30 L${e[d][0]},${e[d][1]}" stroke="#00f5d4" stroke-width="12" stroke-linecap="round"/>`).join("")}<circle cx="30" cy="30" r="7" fill="#00f5d4"/></svg>`};
+  const side=(target,txt)=>`<div class="side">${[...Array(n).keys()].map(r=>`<span class="${r===target?'on':''}">${r===target?txt:""}</span>`).join("")}</div>`;
+  el.innerHTML=`<div class="pipes-wrap" style="--w:${W};--n:${n}">${side(p.from,p.inLabel||"ingresso ▶")}<div class="pipes">${g.flat().map((c,i)=>`<button data-i="${i}" aria-label="Sezione ${i+1}">${svg(c)}</button>`).join("")}</div>${side(p.to,p.outLabel||"▶ uscita")}</div>`;
+  const ok=()=>{const seen=new Set(),st=[[p.from,0]];if(!conns(g[p.from][0]).includes(3))return false;
+    while(st.length){const [r,c]=st.pop(),k=r*n+c;if(seen.has(k))continue;seen.add(k);
+      const cs=conns(g[r][c]);if(r===p.to&&c===n-1&&cs.includes(1))return true;
+      for(const d of cs){const nr=r+[-1,0,1,0][d],nc=c+[0,1,0,-1][d];if(nr<0||nr>=n||nc<0||nc>=n)continue;if(conns(g[nr][nc]).includes((d+2)%4))st.push([nr,nc])}}
+    return false};
+  el.querySelectorAll(".pipes button").forEach(b=>b.onclick=()=>{if(phase!=="puzzle")return;const i=+b.dataset.i,c=g[Math.floor(i/n)][i%n];c.rot=(c.rot+1)%4;b.innerHTML=svg(c);if(ok())solved()});
+};
+P.slide=(p,el)=>{
+  let s=[0,1,2,3,4,5,6,7,8];const r=rng(2024);let prev=-1;
+  const nb=e=>[e-3,e+3,e%3?e-1:-1,e%3<2?e+1:-1].filter(x=>x>=0&&x<9);
+  for(let k=0;k<80;k++){const e=s.indexOf(8),opts=nb(e).filter(x=>x!==prev);const m=opts[Math.floor(r()*opts.length)];prev=e;[s[e],s[m]]=[s[m],s[e]]}
+  if(s.every((v,i)=>v===i))[s[7],s[8]]=[s[8],s[7]];
+  const draw=()=>{el.innerHTML=`<div class="slide">${s.map((v,i)=>v===8?`<button class="empty" aria-label="Spazio vuoto" disabled></button>`:`<button data-i="${i}" aria-label="Riquadro ${v+1}"><svg viewBox="${(v%3)*100} ${Math.floor(v/3)*100} 100 100">${TESTCARD}</svg></button>`).join("")}</div>`;
+    el.querySelectorAll(".slide button[data-i]").forEach(b=>b.onclick=()=>{if(phase!=="puzzle")return;const i=+b.dataset.i,e=s.indexOf(8);if(!nb(e).includes(i))return;[s[e],s[i]]=[s[i],s[e]];draw();if(s.every((v,j)=>v===j))solved()})};
+  draw();
+};
+P.lights=(p,el)=>{
+  const n=p.n||3,on=Array(n*n).fill(true);
+  const press=i=>[i,i-n,i+n,i%n?i-1:-1,i%n<n-1?i+1:-1].filter(x=>x>=0&&x<n*n).forEach(x=>on[x]=!on[x]);
+  p.start.forEach(press);
+  const draw=()=>{el.innerHTML=`<div class="lights" style="grid-template-columns:repeat(${n},1fr);width:${n>3?'min(260px,72vw)':'min(220px,62vw)'}">${on.map((v,i)=>`<button class="${v?'on':''}" data-i="${i}" aria-label="Lampada ${i+1}, ${v?'accesa':'spenta'}"></button>`).join("")}</div>`;
+    el.querySelectorAll(".lights button").forEach(b=>b.onclick=()=>{if(phase!=="puzzle")return;press(+b.dataset.i);draw();if(on.every(Boolean))solved()})};
+  draw();
+};
+P.order=(p,el)=>{
+  const list=[...p.items];let sel=-1;const pal=["#6d2e46","#2f4858","#33658a","#8d6346","#55828b"];
+  const draw=()=>{el.innerHTML=`<div class="shelf">${list.map((t,i)=>`<button data-i="${i}" class="${i===sel?'sel':''}" style="background:${pal[p.items.indexOf(t)]}">${t}</button>`).join("")}</div><div class="row" style="justify-content:center"><button id="checkBtn">Controlla l'ordine</button></div>`;
+    el.querySelectorAll(".shelf button").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(sel<0)sel=i;else{[list[sel],list[i]]=[list[i],list[sel]];sel=-1}draw()});
+    $("checkBtn").onclick=()=>{if(list.every((t,i)=>t===p.answer[i]))solved();else wrongAnswer(`Il bibliotecario scuote la testa: ${list.filter((t,i)=>t===p.answer[i]).length} volumi su 5 sono al posto giusto.`)}};
+  draw();
+};
+P.anagram=(p,el)=>{
+  const r=rng(11);const pool=[...p.answer].map((l,i)=>({l,i,k:r()})).sort((a,b)=>a.k-b.k);let picked=[];
+  const groups=p.groups||[p.answer.length];
+  const draw=()=>{let k=0;el.innerHTML=`<div class="slots">${groups.map(g=>`<div class="word">${Array.from({length:g},()=>{const i=k++;return picked[i]?`<button data-s="${i}">${picked[i].l}</button>`:`<span></span>`}).join("")}</div>`).join("")}</div>
+      <div class="pool">${pool.map((o,j)=>picked.includes(o)?"":`<button data-p="${j}">${o.l}</button>`).join("")}</div>
+      <div class="row" style="justify-content:center"><button class="alt" id="clearBtn">Svuota</button></div>`;
+    el.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{picked.push(pool[+b.dataset.p]);draw();check()});
+    el.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{picked.splice(+b.dataset.s,1);draw()});
+    $("clearBtn").onclick=()=>{picked=[];draw()}};
+  const check=()=>{if(picked.length<p.answer.length)return;if(picked.map(o=>o.l).join("")===p.answer)solved();else wrongAnswer("Il tabellone rimane muto. Riprova a riordinare le lettere.")};
+  draw();
+};
+P.nonogram=(p,el)=>{
+  const R=p.target.length,C=p.target[0].length,grid=Array(R*C).fill(false);
+  const runs=a=>{const o=[];let c=0;a.forEach(v=>{if(v)c++;else if(c){o.push(c);c=0}});if(c)o.push(c);return o.length?o:[0]};
+  const tRow=p.target.map(r=>runs([...r].map(ch=>ch==="#"))),tCol=[...Array(C).keys()].map(c=>runs(p.target.map(r=>r[c]==="#")));
+  const draw=()=>{let h=`<div class="nono" style="grid-template-columns:auto repeat(${C},1fr)"><span></span>`;
+    tCol.forEach(c=>h+=`<span class="cc">${c.join("<br>")}</span>`);
+    for(let r=0;r<R;r++){h+=`<span class="rc">${tRow[r].join(" ")}</span>`;for(let c=0;c<C;c++){const i=r*C+c;h+=`<button data-i="${i}" class="${grid[i]?'fill':''}" aria-label="Riga ${r+1}, colonna ${c+1}"></button>`}}
+    el.innerHTML=h+`</div>`;
+    el.querySelectorAll(".nono button").forEach(b=>b.onclick=()=>{if(phase!=="puzzle")return;grid[+b.dataset.i]=!grid[+b.dataset.i];draw();check()})};
+  const check=()=>{for(let r=0;r<R;r++)if(runs(grid.slice(r*C,r*C+C)).join()!==tRow[r].join())return;
+    for(let c=0;c<C;c++)if(runs([...Array(R).keys()].map(r=>grid[r*C+c])).join()!==tCol[c].join())return;solved()};
+  draw();
+};
+P.magic=(p,el)=>{
+  const g=Array(9).fill(0);Object.entries(p.givens).forEach(([i,v])=>g[+i]=v);
+  const fixed=Object.keys(p.givens).map(Number),avail=[1,2,3,4,5,6,7,8,9].filter(v=>!Object.values(p.givens).includes(v));
+  const draw=()=>{el.innerHTML=`<div class="magic">${g.map((v,i)=>`<button data-i="${i}" class="${fixed.includes(i)?'given':''}" ${fixed.includes(i)?'disabled':''} aria-label="Casella ${i+1}">${v||""}</button>`).join("")}</div>`;
+    el.querySelectorAll(".magic button[data-i]:not([disabled])").forEach(b=>b.onclick=()=>{if(phase!=="puzzle")return;const i=+b.dataset.i,k=avail.indexOf(g[i]);g[i]=k===avail.length-1?0:avail[k+1];draw();check()})};
+  const check=()=>{if(g.includes(0)||new Set(g).size<9)return;const L=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    if(L.every(l=>l.reduce((a,i)=>a+g[i],0)===15))solved()};
+  draw();
+};
+P.hanoi=(p,el)=>{
+  const pegs=[[...Array(p.n).keys()].map(i=>p.n-i),[],[]];let sel=-1,moves=0;
+  const pal=["#e9c46a","#f4a261","#e76f51","#a26769","#6d597a"];
+  const draw=(msg)=>{el.innerHTML=`<div class="hanoi">${pegs.map((pg,i)=>`<button data-i="${i}" class="${sel===i?'sel':''}" aria-label="Piedistallo ${i+1}"><span class="pole"></span>${pg.map(d=>`<span class="disc" style="width:${20+d*16}%;background:${pal[d-1]}"></span>`).join("")}</button>`).join("")}</div><p class="hintline">Mosse: ${moves}${msg?". "+msg:""}</p>`;
+    el.querySelectorAll(".hanoi button").forEach(b=>b.onclick=()=>{if(phase!=="puzzle")return;const i=+b.dataset.i;
+      if(sel<0){if(pegs[i].length)sel=i;draw();return}
+      if(sel===i){sel=-1;draw();return}
+      const d=pegs[sel][pegs[sel].length-1],top=pegs[i][pegs[i].length-1];
+      if(top&&top<d){sel=-1;draw("Non puoi posare un disco su uno più piccolo");return}
+      pegs[i].push(pegs[sel].pop());sel=-1;moves++;draw();if(pegs[2].length===p.n)solved()})};
+  draw();
+};
+P.mastermind=(p,el)=>{
+  const hex=Object.fromEntries(p.colors);let guess=[],hist=[];
+  const draw=()=>{el.innerHTML=`<div class="mm-hist">${hist.map(h=>`<div class="mm-row">${h.g.map(c=>`<span class="peg" style="background:${hex[c]}"></span>`).join("")}<span class="mm-fb">${"●".repeat(h.b)}${"○".repeat(h.w)}${h.b+h.w?"":"nessuno"}</span></div>`).join("")}</div>
+      <div class="mm-row current">${[0,1,2,3].map(i=>guess[i]?`<button class="peg" data-s="${i}" style="background:${hex[guess[i]]}" aria-label="Togli ${guess[i]}"></button>`:`<span class="peg empty"></span>`).join("")}<span class="mm-fb">tentativo ${hist.length+1} di ${p.tries}</span></div>
+      <div class="mm-pal">${p.colors.map(([n,h])=>`<button class="peg" data-c="${n}" style="background:${h}" aria-label="${n}"></button>`).join("")}</div>
+      <div class="row" style="justify-content:center"><button id="tryBtn" ${guess.filter(Boolean).length<4?"disabled":""}>Prova la combinazione</button></div>`;
+    el.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{const i=[0,1,2,3].find(k=>!guess[k]);if(i!==undefined){guess[i]=b.dataset.c;draw()}});
+    el.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{guess[+b.dataset.s]=null;draw()});
+    $("tryBtn").onclick=()=>{let bl=0,w=0;const sr=[],gr=[];guess.forEach((c,i)=>{if(c===p.secret[i])bl++;else{sr.push(p.secret[i]);gr.push(c)}});
+      gr.forEach(c=>{const k=sr.indexOf(c);if(k>=0){w++;sr.splice(k,1)}});
+      if(bl===4){solved();return}
+      hist.push({g:[...guess],b:bl,w});guess=[];
+      if(hist.length>=p.tries){hist=[];wrongAnswer("La trasmissione è saltata: si ricomincia da capo.")}
+      draw()}};
+  draw();
+};
+P.keypad=(p,el)=>{
+  let num="";const keys=[["1",""],["2","ABC"],["3","DEF"],["4","GHI"],["5","JKL"],["6","MNO"],["7","PQRS"],["8","TUV"],["9","WXYZ"],["",""],["0",""],["",""]];
+  const draw=()=>{el.innerHTML=`<div class="display" aria-live="polite">${num||"&nbsp;"}</div><div class="keypad">${keys.map(([n,l])=>n?`<button class="alt" data-k="${n}">${n}<small>${l||"&nbsp;"}</small></button>`:`<span></span>`).join("")}</div>
+      <div class="row" style="justify-content:center"><button class="alt" id="delBtn">Cancella</button><button id="callBtn">Chiama</button></div>`;
+    el.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{if(num.length<10){num+=b.dataset.k;draw()}});
+    $("delBtn").onclick=()=>{num=num.slice(0,-1);draw()};
+    $("callBtn").onclick=()=>{if(!num)return;if(num===p.answer)solved();else{num="";draw();wrongAnswer("Tu-tu-tu… numero inesistente.")}}};
+  draw();
+};
+P.cipher=(p,el)=>{
+  let k=0;const A="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  el.innerHTML=`<div class="wheel"><div class="wrow"><b>chiaro</b>${[...A].map(c=>`<span>${c}</span>`).join("")}</div><div class="wrow" id="inner"></div></div>
+    <div class="row" style="justify-content:center;margin-bottom:12px"><button class="alt" id="kDown" aria-label="Chiave meno uno">◀</button><span id="kVal" style="min-width:90px;text-align:center"></span><button class="alt" id="kUp" aria-label="Chiave più uno">▶</button></div>
+    <div class="row"><input id="answer" autocomplete="off" autocapitalize="characters" placeholder="La parola decifrata" aria-label="Risposta"><button id="checkBtn">Rispondi</button></div>`;
+  const draw=()=>{$("inner").innerHTML=`<b>cifrato</b>`+[...A].map((c,i)=>`<span>${A[(i+k)%26]}</span>`).join("");$("kVal").textContent=`chiave ${k}`};
+  $("kDown").onclick=()=>{k=(k+25)%26;draw()};$("kUp").onclick=()=>{k=(k+1)%26;draw()};draw();
+  const go=()=>{const v=norm($("answer").value);if(!v)return;if(v===p.answer)solved();else wrongAnswer("Il messaggio decifrato non ha senso. Riprova.")};
+  $("checkBtn").onclick=go;$("answer").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+};
+
+// ================= flusso
+const DEFS=`<defs><filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2.5" stdDeviation="2" flood-color="#1a0e05" flood-opacity=".45"/></filter>
+  <radialGradient id="vig" cx="50%" cy="45%" r="72%"><stop offset="55%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#1a0e05" stop-opacity=".55"/></radialGradient>
+  <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9a0" stop-opacity=".14"/><stop offset="1" stop-color="#2a1405" stop-opacity=".16"/></linearGradient></defs>`;
+const LIGHT=`<g pointer-events="none"><rect width="400" height="300" fill="url(#warm)"/><rect width="400" height="300" fill="url(#vig)"/></g>`;
+const seal=([x,y])=>`<g class="seal" transform="translate(${x} ${y})"><circle r="16" fill="transparent"/><g class="seal-art"><rect x="-9" y="-6.5" width="18" height="13" rx="1" fill="#f3e6c4" stroke="#6b4a2b"/><path d="M-9,-6.5 L0,1 L9,-6.5" fill="none" stroke="#6b4a2b"/><circle cy="2.5" r="3.8" fill="#a4161a" stroke="#5a0b0e"/></g><path class="glint" d="M9,-11 l1.5,4 l4,1.5 l-4,1.5 l-1.5,4 l-1.5,-4 l-4,-1.5 l4,-1.5z" fill="#fff6c8"/></g>`;
+
+const bonusIn=i=>save.bonus.filter(k=>k.startsWith(i+"-")).length;
+function showMenu(){
+  cur=-1;$("game").hidden=true;$("menu").hidden=false;overlay.className="overlay";renderMenu();window.scrollTo({top:0});
+}
+function renderMenu(){
+  $("stats").innerHTML=`<div><b>${doneCount()}</b>cimeli su 20</div><div><b>${total()}</b>punti</div><div><b>${save.bonus.length}</b>easter egg su 40</div><div><b>${save.coins}</b>monete</div>`;
+  $("wings").innerHTML=TIERS.map(([n,sub,c],t)=>`<section class="wing" style="--tc:${c}"><h3>${n}<small>${sub}</small></h3><div class="rooms">${[0,1,2,3,4].map(k=>{const i=t*5+k,d=save.done[i],locked=i===19&&!finalOpen();
+      return `<button class="room-card ${d!==undefined?'done':''}" data-r="${i}" ${locked?'disabled':''}><span class="rn">${i+1}</span><span class="rt">${rooms[i].name}</span><span class="rs">${locked?`chiusa: servono tutti i cimeli (${doneCount()} su 19)`:d!==undefined?`${rooms[i].relic.name} · ${d} punti · ★ ${bonusIn(i)}/2`:"da esplorare"}</span></button>`}).join("")}</div></section>`).join("");
+  $("wings").querySelectorAll(".room-card").forEach(b=>b.onclick=()=>enterRoom(+b.dataset.r));
+  const next=[...Array(20).keys()].find(i=>save.done[i]===undefined&&(i<19||finalOpen()));
+  $("continueBtn").disabled=next===undefined;$("continueBtn").onclick=()=>enterRoom(next);
+  $("continueBtn").textContent=doneCount()?"Continua la visita":"Inizia la visita";
+}
+let resetArmed=false;
+$("resetBtn").onclick=()=>{
+  if(!resetArmed){resetArmed=true;$("resetBtn").textContent="Tocca ancora per confermare";setTimeout(()=>{resetArmed=false;$("resetBtn").textContent="Ricomincia da zero"},3000);return}
+  resetArmed=false;$("resetBtn").textContent="Ricomincia da zero";save={done:{},coins:2,got:[],notes:{},bonus:[]};persist();renderMenu();
+};
+$("mapBtn").onclick=showMenu;
+
+function enterRoom(i){
+  cur=i;phase="explore";hintStep=0;wrong=0;seq=[];
+  const room=rooms[i];
+  scene.innerHTML=DEFS+room.draw()+seal(SEALS[i])+LIGHT;
+  scene.setAttribute("aria-label",room.name);
+  $("menu").hidden=true;$("game").hidden=false;
+  $("roomNo").textContent=`Sala ${i+1} di 20 · ${TIERS[Math.floor(i/5)][0]}`;$("roomTitle").textContent=room.name;
+  $("puzzleNum").textContent=`Sala n. ${String(i+1).padStart(3,"0")}`;
+  $("riddle").textContent="Esplora la sala. Tocca gli oggetti per annotare gli indizi nel taccuino e cerca il sigillo rosso del curatore: custodisce l'enigma di questa sala. Finché l'enigma non è risolto, nulla si può spostare.";
+  exploreCount();
+  $("hintLine").textContent="";fb("");note.className="note";overlay.className="overlay";
+  $("hintBtn").disabled=false;
+  const f=$("frame");f.classList.remove("enter");void f.offsetWidth;f.classList.add("enter");
+  hud();window.scrollTo({top:0});
+}
+function exploreCount(){
+  if(phase!=="explore")return;
+  const clues=[...new Set([...scene.querySelectorAll(".clue")].map(c=>c.dataset.msg))],got=save.notes[cur]||[];
+  $("puzzleArea").innerHTML=`<p class="explore-count">Indizi annotati: ${clues.map(m=>`<i class="${got.includes(m)?'got':''}"></i>`).join("")}</p><p class="explore-count" style="margin-top:6px">Easter egg nascosti: ${[0,1].map(k=>`<span style="color:${save.bonus.includes(cur+"-"+k)?'var(--gold)':'rgba(59,38,22,.3)'};font-size:20px">★</span>`).join("")}</p>`;
+}
+function openPuzzle(){
+  const room=rooms[cur],p=room.puzzle,sl=scene.querySelector(".seal");if(sl)sl.remove();
+  phase="puzzle";hintStep=0;
+  $("puzzleNum").textContent=`Enigma n. ${String(cur+1).padStart(3,"0")}`;
+  $("riddle").textContent=p.riddle;$("hintLine").textContent="";fb("");
+  P[p.type](p,$("puzzleArea"));
+  const c=$("card");c.classList.remove("open");void c.offsetWidth;c.classList.add("open");
+  hud();showNote("Hai trovato il sigillo del curatore: l'enigma è sotto la scena.",3000);
+  setTimeout(()=>c.scrollIntoView({behavior:"smooth",block:"start"}),350);
+}
+function wrongAnswer(msg){
+  wrong++;fb(msg,"bad");hud();
+  $("card").classList.remove("shake");void $("card").offsetWidth;$("card").classList.add("shake");
+}
+function solved(){
+  lastPts=worth();phase="item";hintStep=0;
+  $("puzzleArea").innerHTML=`<p class="hintline">Ora gli oggetti della sala si possono spostare. Trascina via quello che copre, tocca quello che si apre.</p>`;
+  $("riddle").textContent=rooms[cur].relic.seek;
+  fb(`Esatto! +${lastPts} punti. Il cimelio è comparso, ma è ben nascosto.`,"good");
+  $("hintLine").textContent="";$("hintBtn").disabled=false;
+  scene.querySelector(".item").classList.remove("hidden");hud();
+  setTimeout(()=>$("frame").scrollIntoView({behavior:"smooth",block:"start"}),600);
+}
+function showNote(msg,dur){note.textContent=msg;note.className="note";void note.offsetWidth;note.className="note show";clearTimeout(noteTimer);noteTimer=setTimeout(()=>note.className="note",dur||4500)}
+function svgPoint(e){const p=scene.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(scene.getScreenCTM().inverse())}
+function svgEl(tag,attrs){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);for(const k in attrs)el.setAttribute(k,attrs[k]);return el}
+
+// trascinamento e tocchi
+let drag=null,down=null;
+scene.addEventListener("touchstart",e=>{if(phase==="item"&&e.target.closest&&e.target.closest(".movable"))e.preventDefault()},{passive:false});
+scene.addEventListener("pointerdown",e=>{
+  const pt=svgPoint(e);down={pt,target:e.target,moved:false};
+  const m=e.target.closest(".movable");
+  if(m&&phase==="item"){drag={m,start:pt,dx:+m.dataset.dx,dy:+m.dataset.dy};m.classList.add("dragging");scene.setPointerCapture(e.pointerId)}
+});
+scene.addEventListener("pointermove",e=>{
+  if(!drag)return;const pt=svgPoint(e),ddx=pt.x-drag.start.x,ddy=pt.y-drag.start.y;
+  if(Math.hypot(ddx,ddy)>4)down.moved=true;
+  if(down.moved){const nx=drag.dx+ddx,ny=drag.dy+ddy;drag.m.setAttribute("transform",`translate(${nx} ${ny})`);drag.m.dataset.cx=nx;drag.m.dataset.cy=ny}
+});
+scene.addEventListener("pointerup",()=>{
+  if(drag){drag.m.classList.remove("dragging");if(down.moved){drag.m.dataset.dx=drag.m.dataset.cx;drag.m.dataset.dy=drag.m.dataset.cy}drag=null}
+  if(down&&!down.moved)tap(down.pt,down.target);
+  down=null;
+});
+scene.addEventListener("pointercancel",()=>{if(drag)drag.m.classList.remove("dragging");drag=null;down=null});
+
+function tap(pt,t){
+  if(phase==="done"||cur<0)return;
+  if(phase==="item"&&t.closest(".item")){relicFound(pt);return}
+  if(phase==="explore"&&t.closest(".seal")){openPuzzle();return}
+  const bh=BONUS[cur].findIndex(([x,y])=>Math.hypot(pt.x-x,pt.y-y)<14),bk=cur+"-"+bh;
+  if(bh>=0){const txt=BONUS[cur][bh][2];
+    if(!save.bonus.includes(bk)){save.bonus.push(bk);persist();
+      const g=svgEl("text",{x:pt.x,y:pt.y,class:"coin-pop","text-anchor":"middle","font-size":"22",fill:"#ffd76a",stroke:"#5a3e0e","stroke-width":"1"});g.textContent="★";scene.appendChild(g);setTimeout(()=>g.remove(),900);
+      showNote(`★ Easter egg ${bonusIn(cur)} di 2 in questa sala: ${txt}`,7000)}
+    else showNote(`★ ${txt}`,5000);
+    exploreCount();return}
+  const hit=rooms[cur].coins.findIndex(([x,y])=>Math.hypot(pt.x-x,pt.y-y)<16),key=cur+"-"+hit;
+  if(hit>=0&&!save.got.includes(key)){
+    save.got.push(key);save.coins++;persist();hud();
+    const g=svgEl("g",{class:"coin-pop"});g.appendChild(svgEl("circle",{cx:pt.x,cy:pt.y,r:9,fill:"#e0b44a",stroke:"#5a3e0e","stroke-width":2}));
+    scene.appendChild(g);setTimeout(()=>g.remove(),900);showNote("Hai trovato una moneta indizio!",2500);return;
+  }
+  const mv=t.closest(".movable");
+  if(mv&&phase!=="item"){
+    showNote(phase==="explore"?"Sembra che si possa spostare, ma il curatore non vuole che tocchi nulla prima di aver risolto l'enigma.":"È bloccato: prima risolvi l'enigma.",3200);
+    mv.classList.remove("nudge");void mv.getBBox();mv.classList.add("nudge");return;
+  }
+  const tg=t.closest(".toggle");
+  if(tg){const c=tg.querySelector(".t-closed"),o=tg.querySelector(".t-open"),open=c.style.display!=="none";c.style.display=open?"none":"";o.style.display=open?"":"none";note.className="note";return}
+  const c=t.closest(".clue");
+  if(c){const m=c.dataset.msg,list=save.notes[cur]=save.notes[cur]||[];
+    const isNew=!list.includes(m);if(isNew){list.push(m);persist()}
+    showNote(m+(isNew?"  ✎ annotato nel taccuino":""),5000);exploreCount();hud();return}
+  const tile=t.closest(".tile");
+  if(tile&&phase==="puzzle"&&rooms[cur].puzzle.type==="seq"){
+    const fl=svgEl("rect",{class:"flash"});["x","y","width","height"].forEach(a=>fl.setAttribute(a,tile.getAttribute(a)));scene.appendChild(fl);setTimeout(()=>fl.remove(),350);
+    seq.push(tile.dataset.c);drawSeq();const ans=rooms[cur].puzzle.answer;
+    if(seq[seq.length-1]!==ans[seq.length-1]){wrongAnswer("La musica si ferma: ordine sbagliato. Ricomincia.");setTimeout(()=>{seq=[];drawSeq()},700)}
+    else if(seq.length===ans.length)solved();else fb("");
+    return;
+  }
+  note.className="note";
+  const r=svgEl("circle",{cx:pt.x,cy:pt.y,r:2,class:"ripple"});scene.appendChild(r);setTimeout(()=>r.remove(),500);
+}
+
+function relicFound(pt){
+  phase="done";const room=rooms[cur],i=cur;
+  save.done[i]=Math.max(save.done[i]||0,lastPts);persist();
+  scene.appendChild(svgEl("circle",{class:"found-ring",cx:pt.x,cy:pt.y,r:22}));
+  $("hintBtn").disabled=true;hud();
+  setTimeout(()=>{
+    if(i===19){finish();return}
+    const next=i<18?i+1:(finalOpen()?19:null);
+    overlay.innerHTML=`<svg class="relic-art" viewBox="-16 -16 32 32" aria-hidden="true">${ITEMS[room.relic.key]}</svg><h2>${room.relic.name}</h2><p class="ref">${room.relic.ref}</p><div class="stamp">lettera incisa: ${room.letter}</div>
+      <div class="row">${next!==null?`<button id="nextBtn">Sala successiva</button>`:""}<button class="alt" id="toMap">Pianta del museo</button></div>`;
+    overlay.className="overlay show";overlay.scrollTop=0;
+    if(next!==null){$("nextBtn").onclick=()=>enterRoom(next);$("nextBtn").focus()}
+    $("toMap").onclick=showMenu;
+  },700);
+}
+
+$("hintBtn").onclick=()=>{
+  const room=rooms[cur];
+  if(save.coins<=0){$("hintLine").textContent="Non hai monete indizio. Esplora le sale: qualcuna è nascosta negli angoli.";return}
+  if(phase==="explore"&&hintStep===0){save.coins--;hintStep=1;const sl=scene.querySelector(".seal");if(sl)sl.classList.add("reveal");$("hintLine").textContent="Indizio: il sigillo del curatore ora pulsa. Guarda bene la scena.";$("hintBtn").disabled=true}
+  else if(phase==="puzzle"&&hintStep<room.puzzle.hints.length){save.coins--;hintStep++;$("hintLine").textContent="Indizio: "+room.puzzle.hints.slice(0,hintStep).join(" ");if(hintStep>=room.puzzle.hints.length)$("hintBtn").disabled=true}
+  else if(phase==="item"&&hintStep===0){save.coins--;hintStep=1;$("hintLine").textContent="Indizio: "+room.relic.where;$("hintBtn").disabled=true}
+  persist();hud();
+};
+
+function renderNotebook(){
+  const order=[cur,...Object.keys(save.notes).map(Number).filter(i=>i!==cur).sort((a,b)=>a-b)].filter(i=>i>=0&&(save.notes[i]||[]).length);
+  const eggs=save.bonus.map(k=>{const [r,b]=k.split("-").map(Number);return BONUS[r][b][2]});
+  const eggHtml=eggs.length?`<h4>★ Easter egg trovati (${eggs.length} su 40)</h4><ul>${eggs.map(t=>`<li>${t}</li>`).join("")}</ul>`:"";
+  $("nbBody").innerHTML=eggHtml+(order.length?order.map(i=>`<h4>Sala ${i+1} · ${rooms[i].name}</h4><ul>${save.notes[i].map(m=>`<li>${m}</li>`).join("")}</ul>`).join(""):`<p class="empty-nb">Ancora nessun indizio. Tocca gli oggetti delle sale per annotarli qui.</p>`);
+}
+$("notesBtn").onclick=()=>{renderNotebook();$("notebook").hidden=false;$("nbClose").focus()};
+$("nbClose").onclick=()=>$("notebook").hidden=true;
+$("notebook").onclick=e=>{if(e.target.id==="notebook")$("notebook").hidden=true};
+
+function finish(){
+  const max=rooms.reduce((a,r)=>a+r.value,0),pct=total()/max;
+  const title=pct>.95?"Mente da gran maestro":pct>.8?"Investigatore acuto":pct>.6?"Apprendista brillante":"Visitatore curioso";
+  const last=rooms[19].relic;
+  overlay.innerHTML=`<svg class="relic-art" viewBox="-16 -16 32 32" aria-hidden="true">${ITEMS[last.key]}</svg><h2>${last.name}</h2><p class="ref">${last.ref}</p><p>Hai ritrovato tutti i venti cimeli del museo.</p><div class="big">${total()} / ${max}</div><p><b>${title}</b></p><div class="row"><button id="toMap">Torna alla pianta</button></div>`;
+  overlay.className="overlay show";$("toMap").onclick=showMenu;$("toMap").focus();
+}
+loadSave().then(showMenu);
+</script>
+</body>
+</html>
